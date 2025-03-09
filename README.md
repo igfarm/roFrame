@@ -1,7 +1,14 @@
 # roFrame - A Picture Frame with Roon Display
 
 ![roFrame](assets/pic1.png)
-A simple digital frame which has the ability to display what's playing on a Roon zone. When not playing music it cycles through pictures.
+A simple digital frame which displays “Now Playing” information from a Roon audio zone. When music is not playing, it cycles through a user-defined slideshow of images.
+
+## Features
+
+- Slideshow: Displays images from a local pictures directory when no music is playing.
+- Roon Metadata: Shows currently playing track information (artist, track title, album art, etc.) for a chosen Roon zone.
+- Kiosk Mode: Automatically launches in a full-screen browser on Raspberry Pi OS (with optional display power management).
+- Lightweight: Uses a simple Python app and minimal services to run efficiently on a Raspberry Pi.
 
 ## Setup
 

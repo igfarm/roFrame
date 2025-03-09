@@ -145,7 +145,7 @@ class MyRoonApi():
     def get_image_url(self, image_size=600):
         # start with a single pixel gif
         image_url = "data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="
-        if self.get_zone_state() == "playing" or self.get_zone_state() == "paused":  
+        if self.get_zone_state() in ["playing", "paused"]:  
             roonapi = self.__get_roonapi()
             zone_id = self.get_zone_id()
             if zone_id:
