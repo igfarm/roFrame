@@ -77,6 +77,7 @@ In my case, this is what I used:
 
 - https://github.com/geerlingguy/pi-kiosk - Inspiration on setting up Kiosk mode
 - https://github.com/pavoni/pyroon - Python interface to Roon Core
+- https://darko.audio/2025/03/how-to-put-roons-now-playing-screen-on-a-tv-or-monitor/ - Article that gave me the idea of creating this app.
 
 ## License
 
