@@ -66,3 +66,11 @@ In my case, this is what I used:
 
 - https://github.com/geerlingguy/pi-kiosk - Inspiration on setting up Kiosk mode
 - https://github.com/pavoni/pyroon - Python interface to Roon Core
+
+## License
+
+[Apache 2.0](LICENSE)
+
+## Author
+
+This project was created by Jaime Pereira in 2025.
