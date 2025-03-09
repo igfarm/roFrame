@@ -15,8 +15,9 @@ A simple digital frame which displays “Now Playing” information from a Roon 
 Starting with the latest Raspberry Pi OS, desktop edition, open a terminal window and install project and requirements:
 
     mkdir ~/work
+    cd ~/work
     git clone https://github.com/igfarm/roFrame
-    sudo apt install unclutter
+    cd roFrame
     python -m venv venv
     source venv/bin/activate
     pip install -r requirements.txt
@@ -40,7 +41,10 @@ and open a browser and open the URL of the machine app is running as indicated w
 
 If you want the application to control when the display is on and off, you will need to enable `DISPLAY_CONTROL=on` on the .env file. Recent versions of Raspbian use the Wayland window manager which does not support dump. Switch to X11 using rapi-config -> Advanced Options -> Wayland.
 
-Install the services needed:
+On the PI, install the software and services needed:
+
+    # Hide the mouse
+    sudo apt install unclutter
 
     # Kiosk service
     sudo cp kiosk.service /lib/systemd/system/
