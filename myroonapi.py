@@ -2,7 +2,6 @@ import os
 import time
 import asyncio
 
-from pprint import pprint
 from roonapi import RoonApi, RoonDiscovery
 
 class MyRoonApi():
