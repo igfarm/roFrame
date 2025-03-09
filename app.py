@@ -28,11 +28,10 @@ name = os.getenv("NAME", "roFrame")
 port = int(os.getenv("PORT", 5006))
 image_size = int(os.getenv("IMAGE_SIZE", 600))
 slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
-display_on_hour=int(os.getenv("DISPLAY_ON_HOUR", 9))
-display_off_hour=int(os.getenv("DISPLAY_OFF_HOUR", 23))
-display_control=os.getenv("DISPLAY_CONTROL", "off")
-
-pictures_folder = os.path.join(app.root_path, 'pictures')
+display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
+display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
+display_control = os.getenv("DISPLAY_CONTROL", "off")
+pictures_folder = os.getenv("PICTURE_FOLDER", os.path.join(app.root_path, 'pictures'))
 
 def getRoonApi():
     global myRoonApi
