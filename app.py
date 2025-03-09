@@ -20,8 +20,10 @@ my_tz = zoneinfo.ZoneInfo(os.getenv("TZ", "America/New_York"))
 myRoonApi = None
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")  # Initialize SocketIO with CORS support
-thread = None  
+socketio = SocketIO(
+    app, cors_allowed_origins="*"
+)  # Initialize SocketIO with CORS support
+thread = None
 thread_stop_event = Event()
 
 name = os.getenv("NAME", "roFrame")
@@ -31,7 +33,8 @@ slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15)
 display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
 display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
 display_control = os.getenv("DISPLAY_CONTROL", "off")
-pictures_folder = os.getenv("PICTURE_FOLDER", os.path.join(app.root_path, 'pictures'))
+pictures_folder = os.getenv("PICTURE_FOLDER", os.path.join(app.root_path, "pictures"))
+
 
 def getRoonApi():
     global myRoonApi
@@ -40,14 +43,16 @@ def getRoonApi():
         myRoonApi.connect(notify_clients=notify_clients)
     return myRoonApi
 
+
 def display(turn_on):
     if display_control != "on":
         return
     """ Function to control the display """
-    state =  "on" if turn_on else "off"
+    state = "on" if turn_on else "off"
     subprocess.check_output(["xset", "dpms", "force", state])
     print("display")
     print(state)
+
 
 def background_thread():
     """
@@ -67,36 +72,43 @@ def background_thread():
                 display(True)
         time.sleep(600)
 
-@app.route('/')
+
+@app.route("/")
 def index():
     # Get the list of images in the pictures folder
     art_images = []
     images = os.listdir(pictures_folder)
-    image_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff'}
-    images = [img for img in images if os.path.splitext(img)[1].lower() in image_extensions]
+    image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
+    images = [
+        img for img in images if os.path.splitext(img)[1].lower() in image_extensions
+    ]
     if not images:
         art_images = [generate_mondrian() for _ in range(10)]
-    return render_template('index.html', 
-                            images=images,
-                            art_images=art_images,
-                            transition_seconds=slideshow_transition_seconds)
+    return render_template(
+        "index.html",
+        images=images,
+        art_images=art_images,
+        transition_seconds=slideshow_transition_seconds,
+    )
 
-@app.route('/slideshow/<filename>')
+
+@app.route("/slideshow/<filename>")
 def slideshow_pic(filename):
     if filename not in os.listdir(pictures_folder):
         return jsonify({"error": "File not found"}), 404
     return send_from_directory(pictures_folder, filename)
 
-@app.route('/static/<path:filename>')
+
+@app.route("/static/<path:filename>")
 def static_files(filename):
     """Serve static files from the static directory."""
-    return send_from_directory(os.path.join(app.root_path, 'static'), filename)
+    return send_from_directory(os.path.join(app.root_path, "static"), filename)
 
-@socketio.on('connect')
+
+@socketio.on("connect")
 def handle_connect():
-    myRoonApi = getRoonApi()
-    print('Client connected')
-    emit('response', {'data': 'Connected'})
+    print("Client connected")
+    emit("response", {"data": "Connected"})
 
     # Start the background thread if it’s not running yet
     global thread
@@ -106,14 +118,14 @@ def handle_connect():
         thread.start()
 
 
-@socketio.on('disconnect')
+@socketio.on("disconnect")
 def handle_disconnect():
-    print('Client disconnected')
+    print("Client disconnected")
 
 
-@socketio.on('trigger_album_update')
+@socketio.on("trigger_album_update")
 def trigger_album_update():
-    print('trigger_album_update')
+    print("trigger_album_update")
     myRoonApi = getRoonApi()
     copy = myRoonApi.get_copy()
     state = myRoonApi.get_zone_state()
@@ -131,12 +143,14 @@ def trigger_album_update():
     if state == "playing":
         display(True)
 
+
 async def notify_clients(message):
-    print('notify_clients')
+    print("notify_clients")
     print(message)
-    socketio.emit('album_update', message)
+    socketio.emit("album_update", message)
     if "state" in message and message["state"] == "playing":
         display(True)
+
 
 def check_time():
     while True:
@@ -146,6 +160,7 @@ def check_time():
             print("The hour is between 5 and 10")
         time.sleep(5)  # Sleep for 15 minutes
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     # socketio.start_background_task(check_time())
-    socketio.run(app, debug=True, port=port, host='0.0.0.0', allow_unsafe_werkzeug=True)
+    socketio.run(app, debug=True, port=port, host="0.0.0.0", allow_unsafe_werkzeug=True)

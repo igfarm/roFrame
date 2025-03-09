@@ -5,6 +5,7 @@ from PIL import Image, ImageDraw
 import io
 import base64
 
+
 def generate_mondrian(width=1024, height=600):
     """
     Generates a Piet Mondrian-style image of size (width x height).
@@ -21,9 +22,7 @@ def generate_mondrian(width=1024, height=600):
 
     # Randomly generate line positions (excluding outer edges to avoid duplication)
     # We will add the outer edges (0 and width/height) to the list to form grid boundaries
-    vertical_lines = sorted(
-        random.sample(range(100, width - 100), num_vertical_lines)
-    )
+    vertical_lines = sorted(random.sample(range(100, width - 100), num_vertical_lines))
     horizontal_lines = sorted(
         random.sample(range(100, height - 100), num_horizontal_lines)
     )
@@ -35,10 +34,10 @@ def generate_mondrian(width=1024, height=600):
     # Define a palette of colors typical of Mondrian
     # White, Red, Blue, Yellow
     palette = [
-        (255, 255, 255),   # White
-        (237, 28, 36),     # Red
-        (63, 72, 204),     # Blue
-        (255, 242, 0)      # Yellow
+        (255, 255, 255),  # White
+        (237, 28, 36),  # Red
+        (63, 72, 204),  # Blue
+        (255, 242, 0),  # Yellow
     ]
     # Weights for how often each color is chosen (e.g., more white space)
     # Adjust to taste
@@ -79,6 +78,7 @@ def generate_mondrian(width=1024, height=600):
 
     # Return the base64 string
     return f"data:image/gif;base64,{img_base64}"
+
 
 if __name__ == "__main__":
     img_tag = f'<img src="{generate_mondrian()}" alt="Mondrian-style art">'
