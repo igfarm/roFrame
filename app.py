@@ -10,6 +10,7 @@ from flask import Flask, render_template, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 from myroonapi import MyRoonApi
+from art_generator import generate_mondrian
 
 # Load environment variables from .env file
 load_dotenv()
@@ -70,12 +71,15 @@ def background_thread():
 @app.route('/')
 def index():
     # Get the list of images in the pictures folder
+    art_images = []
     images = os.listdir(pictures_folder)
     image_extensions = {'.png', '.jpg', '.jpeg', '.gif', '.bmp', '.tiff'}
     images = [img for img in images if os.path.splitext(img)[1].lower() in image_extensions]
-
+    if not images:
+        art_images = [generate_mondrian() for _ in range(10)]
     return render_template('index.html', 
-                            images=images, 
+                            images=images,
+                            art_images=art_images,
                             transition_seconds=slideshow_transition_seconds)
 
 @app.route('/slideshow/<filename>')

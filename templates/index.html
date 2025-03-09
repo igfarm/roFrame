@@ -158,6 +158,9 @@
                 {% for image in images %}
                 <img class="slide" src="{{ url_for('slideshow_pic', filename=image) }}" alt="Slideshow Image">
                 {% endfor %}
+                {% for art_image in art_images %}
+                <img class="slide" src="{{ art_image }}" alt="Slideshow Image">
+                {% endfor %}
             </div>
           </div>
       </div>

@@ -31,7 +31,7 @@ Start the discovery program, and go to Roon extensions to approve it.
 
     python discovery.py
 
-Add a few images to the `pictures` folder. In my case the panel I am using has a resolution of 1024x600, so pictures should be that size.
+Add a few images to the `pictures` folder. In my case the panel I am using has a resolution of 1024x600, so pictures should be that size. If you don't do this step, you will be rewarded with some modern art on your frame.
 
 Test that things are working as expect by staring the frame application
 
