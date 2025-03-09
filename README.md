@@ -60,7 +60,7 @@ On the PI, install the software and services needed:
     sudo systemctl enable frame.service
     sudo systemctl start frame.service
 
-And reboot the PI and it should some up by itself.
+Reboot the PI and all services should come up by themselfs.
 
     sudo reboot
 
