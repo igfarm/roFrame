@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="refresh" content="3000">
+    <title>{{ name }} - Album</title>
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <script src="/static/socket.io.min.js"></script>
+    <script>
+        var socket = io.connect(location.hostname + ':' + location.port );
+        socket.on('connection', function() {
+            console.log('Socket connected');
+
+        });
+
+        setTimeout(function() {
+                console.log('Triggering album update');
+                socket.emit('trigger_album_update'); // Trigger an album update
+            }, 2000); // 2 seconds delay
+
+        socket.on('album_update', function(data) {
+            console.log('Album update received:', data)
+
+            if (data.album_cover_url !== undefined) {
+                console.log("updating album");
+                document.getElementById('album_img').src = data.album_cover_url;
+                document.getElementById('album_title').innerText = data.album_title;
+                document.getElementById('album_artist').innerText = data.album_artist;
+                document.getElementById('album_track').innerText = data.album_track;
+            }
+
+            if (data.state === 'playing') {
+                console.log("showing album");
+                document.getElementById('slideshow').classList.add('d-none');
+                document.getElementById('album').classList.remove('d-none');
+            }
+            else {
+                console.log("showing slideshow");
+                document.getElementById('slideshow').classList.remove('d-none');
+                document.getElementById('album').classList.add('d-none');
+            }
+
+        });
+
+        socket.on('response', function(data) {
+            console.log('Response received:', data);
+        });
+
+        socket.on('disconnect', function() {
+            console.log('Socket disconnected');
+        });
+
+
+        function slideshow() {
+            let currentIndex = 0;
+            const slides = document.querySelectorAll('.slide');
+            console.log(slides);
+            const totalSlides = slides.length;
+
+            // This array holds the slide indices [0, 1, 2, ..., totalSlides-1]
+            let shuffledIndices = [];
+
+            // Simple function to shuffle an array (Fisher-Yates shuffle)
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+            }
+
+            // Initialize and shuffle the indices once
+            function initShuffledIndices() {
+                shuffledIndices = [...Array(totalSlides).keys()]; // [0,1,2,...]
+                shuffleArray(shuffledIndices);
+            }
+
+            // Reveal the next slide in the current shuffled order
+            function showNextSlide() {
+                // Remove the 'active' class from the current slide
+                slides[shuffledIndices[currentIndex]].classList.remove('active');
+
+                // Move to the next index
+                currentIndex++;
+
+                // If we’ve reached the end of this shuffle set,
+                // start over and reshuffle.
+                if (currentIndex >= totalSlides) {
+                    currentIndex = 0;
+                    shuffleArray(shuffledIndices);  // Shuffle again for a new order
+                }
+
+                // Add the 'active' class to the new current slide
+                slides[shuffledIndices[currentIndex]].classList.add('active');
+            }
+
+            // Run the initializer
+            initShuffledIndices();
+
+            // Set the first slide visible in the newly shuffled order
+            slides[shuffledIndices[0]].classList.add('active');
+            
+            setInterval(showNextSlide, {{ transition_seconds }} * 1000); // Change image every 20 seconds
+        }
+    </script>
+    <style>
+        body {
+            background-color: rgba(0, 0, 0);
+            color: white;
+        }
+        
+        .container {
+            margin: 0;
+            padding: 0;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+
+        #album_artist {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        #album_title, #album_track {
+            font-size: 1.5em;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="album"  class="row d-none">
+          <div class="col">
+            <div class="row">
+                <div id="album_cover" class="col">
+                    <img id="album_img" src="{{ album_cover_url }}" alt="Album Cover">
+                </div>
+                <div id="album_info" class="col vh-100 d-flex justify-content-center flex-column">
+                    <p id="album_artist">{{ album_artist }}</p>
+                    <p id="album_title">{{ album_title }}</p>
+                    <p id="album_track">{{ album_track }}</p>
+
+                </div>
+            </div>  
+            </div>
+        </div>
+        <div id="slideshow" class="row">
+            <div class="col">
+                {% for image in images %}
+                <img class="slide" src="{{ url_for('slideshow_pic', filename=image) }}" alt="Slideshow Image">
+                {% endfor %}
+            </div>
+          </div>
+      </div>
+    </div>
+    <script>
+        slideshow();
+    </script>
+    <script src="/static/bootstrap.bundle.min.js"></script>
+</body>
+</html>

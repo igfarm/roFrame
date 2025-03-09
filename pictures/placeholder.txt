@@ -1,0 +1,1 @@
+Pictures go in this directory. Place jpg files here.

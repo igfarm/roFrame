@@ -1,0 +1,16 @@
+[Unit]
+Description=Frame
+Wants=graphical.target
+After=graphical.target
+
+[Service]
+Environment="DISPLAY=:0"
+Environment="PYTHONUNBUFFERED=1"
+Type=simple
+WorkingDirectory=/home/jaime/work/frame
+ExecStart=/home/jaime/work/frame/venv/bin/python /home/jaime/work/frame/app.py
+Restart=on-failure
+User=jaime
+
+[Install]
+WantedBy=graphical.target
