@@ -5,10 +5,10 @@ A simple digital frame which has the ability to display what's playing on a Roon
 
 ## Setup
 
-Starting with the latest Raspberry PI OS, open a terminal window and install project and requirements:
+Starting with the latest Raspberry Pi OS, desktop edition, open a terminal window and install project and requirements:
 
     mkdir ~/work
-    git clone ...
+    git clone https://github.com/igfarm/roFrame
     sudo apt install unclutter
     python -m venv venv
     source venv/bin/activate
@@ -37,11 +37,15 @@ Install the services needed:
 
     # Kiosk service
     sudo cp kiosk.service /lib/systemd/system/
+    sudo sed -i "s|PATH|$(pwd)|g" /etc/systemd/system/kiosk.service
+    sudo sed -i "s|USER|$(whoami)|g" /etc/systemd/system/kiosk.service
     sudo systemctl enable kiosk.service
     sudo systemctl start kiosk.service
 
     # Frame service
     sudo cp frame.service /lib/systemd/system/
+    sudo sed -i "s|PATH|$(pwd)|g" /etc/systemd/system/frame.service
+    sudo sed -i "s|USER|$(whoami)|g" /etc/systemd/system/frame.service
     sudo systemctl enable frame.service
     sudo systemctl start frame.service
 

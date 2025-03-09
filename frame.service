@@ -7,10 +7,10 @@ After=graphical.target
 Environment="DISPLAY=:0"
 Environment="PYTHONUNBUFFERED=1"
 Type=simple
-WorkingDirectory=/home/jaime/work/frame
-ExecStart=/home/jaime/work/frame/venv/bin/python /home/jaime/work/frame/app.py
+WorkingDirectory=PATH
+ExecStart=PATH/venv/bin/python PATH/app.py
 Restart=on-failure
-User=jaime
+User=USER
 
 [Install]
 WantedBy=graphical.target
