@@ -12,9 +12,11 @@ A simple digital frame which displays “Now Playing” information from a Roon 
 
 ## Setup
 
+Assuming you have freshly installed the latest Raspberry Pi OS Lite on an SD card, enabled Wi-Fi and SSH access, and opened a remote terminal to the board.
+
 ### Install Application
 
-Here we install the application and make sure backend runs:
+Update OS and install required packages:
 
     sudo apt update
     sudo apt install -y git
@@ -29,12 +31,12 @@ Install application:
     source venv/bin/activate
     pip install -r requirements.txt
 
-Make a copy of the configuration and edit as need:
+Make a copy of the configuration and modify as need:
 
     cp .env.example .env
     nano .env
 
-Start the discovery program, and go to Roon extensions to approve it.
+Start the discovery program, and go to Roon extensions to approve it:
 
     python discovery.py
 
@@ -46,9 +48,9 @@ Test that things are working as expect by staring the frame application
 
 and open a browser and open the URL of the machine app is running as indicated when running app.
 
-### Install and configure using Raspberry Pi OS Lite
+### Install and configure OS
 
-Starting with the latest **Raspberry Pi OS Lite** open a terminal and install required packages:
+Install required packages:
 
     sudo apt update
     sudo apt install -y xserver-xorg xinit chromium-browser unclutter
