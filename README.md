@@ -65,15 +65,18 @@ Create an `.xinit` file that `startx` will execute once it starts running:
 
     cat << EOF > ~/.xinitrc
     #!/bin/bash
-    xset -dpms      # Disable power management
-    xset s off      # Disable screen saver
-    xset s noblank  # Prevent screen blanking
 
     # A small wait to make sure service starts
     sleep 10
 
-    # Start Chromium in kiosk mode
+    # Disable power management
     unclutter -idle 0.1 -root &
+    xset dpms 0 0 0
+    xset -dpms      # Disable power management
+    xset s off      # Disable screen saver
+    xset s noblank  # Prevent screen blanking
+
+    # Start Chromium in kiosk mode
     exec chromium-browser --noerrdialogs --disable-infobars --kiosk "http://127.0.0.1:5006"
     EOF
 
