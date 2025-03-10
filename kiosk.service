@@ -1,0 +1,14 @@
+[Unit]
+Description=Start X and Chromium in Kiosk Mode
+After=network.target
+
+[Service]
+Environment="DISPLAY=:0"
+ExecStart=/usr/bin/startx
+Restart=always
+StandardOutput=syslog
+StandardError=syslog
+User=USER
+
+[Install]
+WantedBy=multi-user.target

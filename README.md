@@ -53,23 +53,15 @@ Starting with the latest **Raspberry Pi OS Lite** open a terminal and install re
     sudo apt update
     sudo apt install -y xserver-xorg xinit chromium-browser unclutter
 
-Install the application to run as a service:
-
-    sudo cp frame.service /lib/systemd/system/
-    sudo sed -i "s|PATH|$(pwd)|g" /lib/systemd/system/frame.service
-    sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/frame.service
-    sudo systemctl enable frame.service
-    sudo systemctl start frame.service
-
 Create an `.xinit` file that `startx` will execute once it starts running:
 
     cat << EOF > ~/.xinitrc
     #!/bin/bash
 
-    # A small wait to make sure service starts
+    # A small wait to make sure needed services have started
     sleep 10
 
-    # Disable power management
+    # Disable mouse and power management
     unclutter -idle 0.1 -root &
     xset dpms 0 0 0
     xset -dpms      # Disable power management
@@ -80,32 +72,30 @@ Create an `.xinit` file that `startx` will execute once it starts running:
     exec chromium-browser --noerrdialogs --disable-infobars --kiosk "http://127.0.0.1:5006"
     EOF
 
-Make it executable:
-
     chmod +x ~/.xinitrc
 
-Start the X server when the system boots up into the console:
+Install the applications service:
 
-    cat << EOF >> ~/.bashrc
-    if [ -z "\$DISPLAY" ] && [ "\$(tty)" = "/dev/tty1" ]; then
-    startx
-    fi
-    EOF
+    sudo cp frame.service /lib/systemd/system/
+    sudo sed -i "s|PATH|$(pwd)|g" /lib/systemd/system/frame.service
+    sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/frame.service
+    sudo systemctl enable frame.service
 
-Enable "Auto Login":
+Install the kiosk service:
 
-    sudo raspi-config
+    sudo cp kiosk.service /lib/systemd/system/
+    sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/kiosk.service
+    sudo systemctl enable kiosk.service
 
-and:
+Allow `startx` to be started by a service:
 
-- Go to System Options > Boot / Auto Login.
-- Select Console Autologin (NOT "Desktop Autologin").
+    sudo sed -i "s|allowed_users=console|allowed_users=anybody|g" /etc/X11/Xwrapper.config
 
 Reboot the PI
 
     sudo reboot
 
-The frame should come up by itself
+The frame should come and you should see some pictures in the screen
 
 ## Hardware
 
