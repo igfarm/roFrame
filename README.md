@@ -76,6 +76,8 @@ Create an `.xinit` file that `startx` will execute once it starts running:
 
 Install the applications service:
 
+    cd ~/work/roFrame
+
     sudo cp frame.service /lib/systemd/system/
     sudo sed -i "s|PATH|$(pwd)|g" /lib/systemd/system/frame.service
     sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/frame.service
