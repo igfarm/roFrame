@@ -71,7 +71,7 @@ Create an `.xinit` file that `startx` will execute once it starts running:
     xset s noblank  # Prevent screen blanking
 
     # Start Chromium in kiosk mode
-    exec chromium-browser --noerrdialogs --disable-infobars --kiosk "http://127.0.0.1:5006"
+    exec chromium-browser --noerrdialogs --disable-infobars --hide-scrollbars --kiosk "http://127.0.0.1:5006"
     EOF
 
     chmod +x ~/.xinitrc
