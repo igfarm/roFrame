@@ -7,5 +7,6 @@ rsync -av --exclude deploy.sh \
   --exclude __pycache__/ \
   --exclude '*/__pycache__' \
   --exclude '.git*' \
+  --exclude '.env' \
   ./ $HOST:work/frame/
 ssh $HOST sudo reboot
