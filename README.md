@@ -12,7 +12,14 @@ A simple digital frame which displays “Now Playing” information from a Roon 
 
 ## Setup
 
-Starting with the latest Raspberry Pi OS, desktop edition, open a terminal window and install project and requirements:
+### Install Application
+
+Here we install the application and make sure backend runs:
+
+    sudo apt update
+    sudo apt install -y git
+
+Install application:
 
     mkdir ~/work
     cd ~/work
@@ -39,30 +46,63 @@ Test that things are working as expect by staring the frame application
 
 and open a browser and open the URL of the machine app is running as indicated when running app.
 
-If you want the application to control when the display is on and off, you will need to enable `DISPLAY_CONTROL=on` on the .env file. Recent versions of Raspbian use the Wayland window manager which does not support dump. Switch to X11 using rapi-config -> Advanced Options -> Wayland.
+### Install and configure using Raspberry Pi OS Lite
 
-On the PI, install the software and services needed:
+Starting with the latest **Raspberry Pi OS Lite** open a terminal and install required packages:
 
-    # Hide the mouse
-    sudo apt install unclutter
+    sudo apt update
+    sudo apt install -y xserver-xorg xinit chromium-browser unclutter
 
-    # Kiosk service
-    sudo cp kiosk.service /lib/systemd/system/
-    sudo sed -i "s|PATH|$(pwd)|g" /etc/systemd/system/kiosk.service
-    sudo sed -i "s|USER|$(whoami)|g" /etc/systemd/system/kiosk.service
-    sudo systemctl enable kiosk.service
-    sudo systemctl start kiosk.service
+Install the application to run as a service:
 
-    # Frame service
     sudo cp frame.service /lib/systemd/system/
-    sudo sed -i "s|PATH|$(pwd)|g" /etc/systemd/system/frame.service
-    sudo sed -i "s|USER|$(whoami)|g" /etc/systemd/system/frame.service
+    sudo sed -i "s|PATH|$(pwd)|g" /lib/systemd/system/frame.service
+    sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/frame.service
     sudo systemctl enable frame.service
     sudo systemctl start frame.service
 
-Reboot the PI and all services should come up by themselfs.
+Create an `.xinit` file that `startx` will execute once it starts running:
+
+    cat << EOF > ~/.xinitrc
+    #!/bin/bash
+    xset -dpms      # Disable power management
+    xset s off      # Disable screen saver
+    xset s noblank  # Prevent screen blanking
+
+    # A small wait to make sure service starts
+    sleep 10
+
+    # Start Chromium in kiosk mode
+    unclutter -idle 0.1 -root &
+    exec chromium-browser --noerrdialogs --disable-infobars --kiosk "http://127.0.0.1:5006"
+    EOF
+
+Make it executable:
+
+    chmod +x ~/.xinitrc
+
+Start the X server when the system boots up into the console:
+
+    cat << EOF >> ~/.bashrc
+    if [ -z "\$DISPLAY" ] && [ "\$(tty)" = "/dev/tty1" ]; then
+    startx
+    fi
+    EOF
+
+Enable "Auto Login":
+
+    sudo raspi-config
+
+and:
+
+- Go to System Options > Boot / Auto Login.
+- Select Console Autologin (NOT "Desktop Autologin").
+
+Reboot the PI
 
     sudo reboot
+
+The frame should come up by itself
 
 ## Hardware
 

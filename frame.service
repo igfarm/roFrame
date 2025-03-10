@@ -1,7 +1,6 @@
 [Unit]
-Description=Frame
-Wants=graphical.target
-After=graphical.target
+Description=roFrame
+After=network.target
 
 [Service]
 Environment="DISPLAY=:0"
@@ -13,4 +12,4 @@ Restart=on-failure
 User=USER
 
 [Install]
-WantedBy=graphical.target
+WantedBy=multi-user.target
