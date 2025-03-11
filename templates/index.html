@@ -6,12 +6,26 @@
     <meta http-equiv="refresh" content="3000">
     <title>{{ name }} - Album</title>
     <link href="/static/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <style>
+
+        @font-face {
+            font-family: 'Butler1';
+            src:  url('static/fonts/Butler1/Butler1.ttf.woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        @font-face {
+            font-family: 'Roboto';
+            src:  url('/static/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf');
+            font-weight: normal;
+            font-style: normal;
+        }
+
         body {
             background-color: rgba(0, 0, 0);
             color: white;
-            font-family: 'Roboto', sans-serif;
+            font-family: 'Butler1', sans-serif;
         }
         .container {
             margin: 0;
@@ -34,11 +48,14 @@
         }
         #album_artist {
             font-weight: bold;
-            margin-bottom: 0.8em;
+            margin-bottom: 0.5em;
+            line-height: 1.2em;
         }
         #album_title, #album_track {
-            margin-bottom: 0.8em;
+            font-family: 'Roboto', sans-serif;
+            margin-bottom: 0.5em;
             filter: brightness(80%);
+            line-height: 1.2em;
         }
     </style>
     <script src="/static/socket.io.min.js"></script>
@@ -71,11 +88,11 @@
                     document.getElementById('album_title').innerText = data.album_title;
                     document.getElementById('album_track').innerText = data.album_track;
 
-                    let size = getFonteSize(document.getElementById('album_artist').innerText, 40, 60);
+                    let size = getFonteSize(document.getElementById('album_artist').innerText, 40, 80);
                     document.getElementById('album_artist').style.fontSize = size + 'px';
 
-                    let size2 = getFonteSize(document.getElementById('album_title').innerText, 35, 40);
-                    let size3 = getFonteSize(document.getElementById('album_track').innerText, 35, 40);
+                    let size2 = getFonteSize(document.getElementById('album_title').innerText, 30, 40);
+                    let size3 = getFonteSize(document.getElementById('album_track').innerText, 30, 40);
                     size = Math.min(size2, size3);
                     document.getElementById('album_title').style.fontSize = size + 'px';
                     document.getElementById('album_track').style.fontSize = size + 'px';
