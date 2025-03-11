@@ -1,6 +1,6 @@
 # roFrame - A Picture Frame with Roon Display
 
-![roFrame](assets/pic1.png)
+![roFrame](assets/pic3.jpg)
 A simple digital frame which displays “Now Playing” information from a Roon audio zone. When music is not playing, it cycles through a user-defined slideshow of images.
 
 ## Features
