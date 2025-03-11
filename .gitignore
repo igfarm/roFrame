@@ -5,5 +5,5 @@ roon_token.txt
 venv
 pictures/*.jpg
 __pycache__
-*/__pycache__
 .env
+.DS_Store
