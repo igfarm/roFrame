@@ -1,4 +1,5 @@
 #!/bin/bash
+HOST=frame.local
 set -e
 rsync -av --exclude deploy.sh \
   --exclude venv/  \
@@ -7,5 +8,5 @@ rsync -av --exclude deploy.sh \
   --exclude '*/__pycache__' \
   --exclude '.git*' \
   --exclude '.env' \
-  ./ frame.local:work/roFrame/
+  ./ $HOST:work/roFrame/
 ssh $HOST sudo reboot

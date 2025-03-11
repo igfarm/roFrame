@@ -6,6 +6,41 @@
     <meta http-equiv="refresh" content="3000">
     <title>{{ name }} - Album</title>
     <link href="/static/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: rgba(0, 0, 0);
+            color: white;
+            font-family: 'Roboto', sans-serif;
+        }
+        .container {
+            margin: 0;
+            padding: 0;
+        }
+        .slide {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+        }
+        .slide.active {
+            opacity: 1;
+        }
+        #album_img {
+            width: 600px;
+            height: 600px;
+        }
+        #album_artist {
+            font-weight: bold;
+            margin-bottom: 0.8em;
+        }
+        #album_title, #album_track {
+            margin-bottom: 0.8em;
+            filter: brightness(80%);
+        }
+    </style>
     <script src="/static/socket.io.min.js"></script>
     <script>
         var socket = io.connect(location.hostname + ':' + location.port );
@@ -24,13 +59,30 @@
 
             if (data.album_cover_url !== undefined) {
                 console.log("updating album");
-                document.getElementById('album_img').src = data.album_cover_url;
-                document.getElementById('album_title').innerText = data.album_title;
-                document.getElementById('album_artist').innerText = data.album_artist;
-                document.getElementById('album_track').innerText = data.album_track;
+
+                if (data.state === 'playing') {
+                    document.getElementById('album_artist').style.fontSize = '1px';
+                    document.getElementById('album_title').style.fontSize = '1px';
+                    document.getElementById('album_track').style.fontSize = '1px';
+
+                    document.getElementById('album_info').classList.remove('d-none');
+                    document.getElementById('album_img').src = data.album_cover_url;
+                    document.getElementById('album_artist').innerText = data.album_artist;
+                    document.getElementById('album_title').innerText = data.album_title;
+                    document.getElementById('album_track').innerText = data.album_track;
+
+                    let size = getFonteSize(document.getElementById('album_artist').innerText, 40, 60);
+                    document.getElementById('album_artist').style.fontSize = size + 'px';
+
+                    let size2 = getFonteSize(document.getElementById('album_title').innerText, 35, 40);
+                    let size3 = getFonteSize(document.getElementById('album_track').innerText, 35, 40);
+                    size = Math.min(size2, size3);
+                    document.getElementById('album_title').style.fontSize = size + 'px';
+                    document.getElementById('album_track').style.fontSize = size + 'px';
+                }
             }
 
-            if (data.state === 'playing') {
+            if (data.state === 'playing' || data.state === 'loading') {
                 console.log("showing album");
                 document.getElementById('slideshow').classList.add('d-none');
                 document.getElementById('album').classList.remove('d-none');
@@ -40,7 +92,6 @@
                 document.getElementById('slideshow').classList.remove('d-none');
                 document.getElementById('album').classList.add('d-none');
             }
-
         });
 
         socket.on('response', function(data) {
@@ -51,6 +102,41 @@
             console.log('Socket disconnected');
         });
 
+        function getFonteSize(text, minFontSize=30, maxFontSize = 100, boxWidth = 380, boxHeight = 160) {
+            // Create an off-screen canvas to measure text
+            const canvas = document.createElement('canvas');
+            canvas.width = boxWidth;
+            canvas.height = boxHeight;
+            const context = canvas.getContext('2d');
+
+            // Set up our search bounds
+            let bestFit = minFontSize;
+
+            while (minFontSize <= maxFontSize) {
+                const mid = Math.floor((minFontSize + maxFontSize) / 2);
+                // Set the context font. Using sans-serif as required.
+                context.font = `${mid}px sans-serif`;
+                
+                // Measure text width and try to approximate height.
+                const metrics = context.measureText(text);
+                const textWidth = metrics.width;
+                // If available, use actual bounding boxes for height; otherwise, fall back to the font size.
+                const textHeight = (metrics.actualBoundingBoxAscent && metrics.actualBoundingBoxDescent)
+                ? metrics.actualBoundingBoxAscent + metrics.actualBoundingBoxDescent
+                : mid;
+                
+                // Check if both dimensions fit within the box.
+                if (textWidth <= boxWidth && textHeight <= boxHeight) {
+                    bestFit = mid;         // current font size works; try a larger one
+                    minFontSize = mid + 1;
+                } else {
+                    maxFontSize = mid - 1;   // too big, try a smaller font size
+                }
+            }
+
+            bestFit = Math.min(180, bestFit); 
+            return bestFit;
+        }
 
         function slideshow() {
             let currentIndex = 0;
@@ -103,38 +189,6 @@
             setInterval(showNextSlide, {{ transition_seconds }} * 1000); // Change image every 20 seconds
         }
     </script>
-    <style>
-        body {
-            background-color: rgba(0, 0, 0);
-            color: white;
-        }
-        
-        .container {
-            margin: 0;
-            padding: 0;
-        }
-        .slide {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0;
-            transition: opacity 1s ease-in-out;
-        }
-        .slide.active {
-            opacity: 1;
-        }
-
-        #album_artist {
-            font-size: 2em;
-            font-weight: bold;
-        }
-
-        #album_title, #album_track {
-            font-size: 1.5em;
-        }
-
-    </style>
 </head>
 <body>
     <div class="container">
@@ -148,7 +202,6 @@
                     <p id="album_artist">{{ album_artist }}</p>
                     <p id="album_title">{{ album_title }}</p>
                     <p id="album_track">{{ album_track }}</p>
-
                 </div>
             </div>  
             </div>

@@ -22,7 +22,7 @@ myRoonApi = None
 app = Flask(__name__)
 socketio = SocketIO(
     app, cors_allowed_origins="*"
-)  # Initialize SocketIO with CORS support
+)
 thread = None
 thread_stop_event = Event()
 
@@ -45,18 +45,16 @@ def getRoonApi():
 
 
 def display(turn_on):
-    if display_control != "on":
-        return
-    """ Function to control the display """
+    """Function to control the display"""
     state = "on" if turn_on else "off"
-    subprocess.check_output(["xset", "dpms", "force", state])
-    print("display")
-    print(state)
+    if display_control == "on":
+        subprocess.check_output(["xset", "dpms", "force", state])
+    print(f"display: {state}")
 
 
 def background_thread():
     """
-    A background thread that emits a message every 10 seconds.
+    A background thread that emits a message every 10 minutes.
     """
     while not thread_stop_event.is_set():
         myRoonApi = getRoonApi()
