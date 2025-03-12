@@ -1,10 +1,12 @@
 # roFrame - A Picture Frame with Roon Display
 
 ![roFrame](assets/pic3.jpg)
-A simple digital frame which displays “Now Playing” information from a Roon audio zone. When music is not playing, it cycles through a user-defined slideshow of images.
+
+A simple digital frame that shows "Now Playing" information from a Roon audio zone. It communicates with Roon as an extension. When music is not playing, it cycles through a user-defined slideshow of images.
 
 ## Features
 
+- Connection: Connects to Roon over Wi-Fi as an extension, so only a power cable is needed, and it can be placed where you like to see it.
 - Slideshow: Displays images from a local pictures directory when no music is playing.
 - Roon Metadata: Shows currently playing track information (artist, track title, album art, etc.) for a chosen Roon zone.
 - Kiosk Mode: Automatically launches in a full-screen browser on Raspberry Pi OS (with optional display power management).
@@ -31,7 +33,7 @@ Install application:
     source venv/bin/activate
     pip install -r requirements.txt
 
-Make a copy of the configuration and modify as need:
+Make a copy of the configuration and modify it as needed:
 
     cp .env.example .env
     nano .env
@@ -40,13 +42,13 @@ Start the discovery program, and go to Roon extensions to approve it:
 
     python discovery.py
 
-Add a few images to the `pictures` folder. In my case the panel I am using has a resolution of 1024x600, so pictures should be that size. If you don't do this step, you will be rewarded with some modern art on your frame.
+Add a few images to the `pictures` folder. In my case, the panel I am using has a resolution of 1024x600, so pictures should be that size. If you don't do this step, you will be rewarded with some modern art on your frame.
 
-Test that things are working as expect by staring the frame application
+Test that things are working as expected by starting the frame application:
 
     python app.py
 
-and open a browser and open the URL of the machine app is running as indicated when running app.
+and open a browser and open the URL of the machine the app is running on as indicated when running the app.
 
 ### Install and configure OS
 
@@ -76,7 +78,7 @@ Create an `.xinit` file that `startx` will execute once it starts running:
 
     chmod +x ~/.xinitrc
 
-Install the applications service:
+Install the application's service:
 
     cd ~/work/roFrame
 
@@ -95,11 +97,11 @@ Allow `startx` to be started by a service:
 
     sudo sed -i "s|allowed_users=console|allowed_users=anybody|g" /etc/X11/Xwrapper.config
 
-Reboot the PI
+Reboot the Pi:
 
     sudo reboot
 
-The frame should come and you should see some pictures in the screen
+The frame should come up and you should see some pictures on the screen.
 
 ## Hardware
 

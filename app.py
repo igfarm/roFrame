@@ -30,11 +30,12 @@ thread_stop_event = Event()
 name = os.getenv("NAME", "roFrame")
 port = int(os.getenv("PORT", 5006))
 image_size = int(os.getenv("IMAGE_SIZE", 600))
-slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
 display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
 display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
 display_control = os.getenv("DISPLAY_CONTROL", "off")
-pictures_folder = os.getenv("PICTURE_FOLDER", os.path.join(app.root_path, "pictures"))
+slideshow_enabled = os.getenv("SLIDESHOW", "on") == "on"
+slideshow_folder = os.getenv("SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures"))
+slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -77,15 +78,17 @@ def background_thread():
 
 @app.route("/")
 def index():
-    # Get the list of images in the pictures folder
-    art_images = []
-    images = os.listdir(pictures_folder)
-    image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
-    images = [
-        img for img in images if os.path.splitext(img)[1].lower() in image_extensions
-    ]
-    if not images:
-        art_images = [generate_mondrian() for _ in range(10)]
+    images = []
+    art_images = ["data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="]
+    if slideshow_enabled:
+        images = os.listdir(slideshow_folder)
+        image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
+        images = [
+            img for img in images if os.path.splitext(img)[1].lower() in image_extensions
+        ]
+        if not images:
+            art_images = [generate_mondrian() for _ in range(10)]
+
     return render_template(
         "index.html",
         images=images,
@@ -96,9 +99,9 @@ def index():
 
 @app.route("/slideshow/<filename>")
 def slideshow_pic(filename):
-    if filename not in os.listdir(pictures_folder):
+    if filename not in os.listdir(slideshow_folder):
         return jsonify({"error": "File not found"}), 404
-    return send_from_directory(pictures_folder, filename)
+    return send_from_directory(slideshow_folder, filename)
 
 
 @app.route("/static/<path:filename>")
