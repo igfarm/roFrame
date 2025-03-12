@@ -3,8 +3,9 @@ import subprocess
 from datetime import datetime
 import zoneinfo
 import time
-from threading import Thread, Event
-import asyncio  # Add asyncio import
+from threading import Event
+import asyncio 
+import logging
 
 from flask import Flask, render_template, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
@@ -35,6 +36,9 @@ display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
 display_control = os.getenv("DISPLAY_CONTROL", "off")
 pictures_folder = os.getenv("PICTURE_FOLDER", os.path.join(app.root_path, "pictures"))
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 def getRoonApi():
     global myRoonApi
@@ -49,7 +53,7 @@ def display(turn_on):
     state = "on" if turn_on else "off"
     if display_control == "on":
         subprocess.check_output(["xset", "dpms", "force", state])
-    print(f"display: {state}")
+    logger.info(f"display: {state}")
 
 
 def background_thread():
@@ -105,25 +109,23 @@ def static_files(filename):
 
 @socketio.on("connect")
 def handle_connect():
-    print("Client connected")
+    logger.info("Client connected")
     emit("response", {"data": "Connected"})
 
     # Start the background thread if it’s not running yet
     global thread
     if thread is None or not thread.is_alive():
-        thread = Thread(target=background_thread)
-        thread.daemon = True
-        thread.start()
+        thread = socketio.start_background_task(background_thread)
 
 
 @socketio.on("disconnect")
 def handle_disconnect():
-    print("Client disconnected")
+    logger.info("Client disconnected")
 
 
 @socketio.on("trigger_album_update")
 def trigger_album_update():
-    print("trigger_album_update")
+    logger.info("trigger_album_update")
     myRoonApi = getRoonApi()
     copy = myRoonApi.get_copy()
     state = myRoonApi.get_zone_state()
@@ -143,22 +145,11 @@ def trigger_album_update():
 
 
 async def notify_clients(message):
-    print("notify_clients")
-    print(message)
+    logger.info("notify_clients")
+    logger.info(message)
     socketio.emit("album_update", message)
     if "state" in message and message["state"] == "playing":
         display(True)
 
-
-def check_time():
-    while True:
-        current_hour = datetime.now().astimezone(my_tz).hour
-        print(f"Current hour: {current_hour}")
-        if 5 <= current_hour < 10:
-            print("The hour is between 5 and 10")
-        time.sleep(5)  # Sleep for 15 minutes
-
-
 if __name__ == "__main__":
-    # socketio.start_background_task(check_time())
     socketio.run(app, debug=True, port=port, host="0.0.0.0", allow_unsafe_werkzeug=True)
