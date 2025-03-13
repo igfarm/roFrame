@@ -5,9 +5,13 @@ import logging
 from typing import Optional, Callable, Dict, Any
 
 from roonapi import RoonApi, RoonDiscovery
-from pprint import pprint
+
 
 class MyRoonApi:
+
+    BLACK_PIXEL = (
+        "data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="
+    )
 
     def __init__(self) -> None:
         self.zone_name = os.environ.get("ROON_ZONE", None)
@@ -53,10 +57,14 @@ class MyRoonApi:
         self.__save_credentials(api.core_id, api.token)
         api.stop()
 
-    def connect(self, notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None) -> None:
+    def connect(
+        self, notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
+    ) -> None:
         self.roonapi = None
 
-        if not os.path.exists(self.core_id_fname) or not os.path.exists(self.token_fname):
+        if not os.path.exists(self.core_id_fname) or not os.path.exists(
+            self.token_fname
+        ):
             self.logger.info("Please authorise first using discovery.py")
             exit()
 
@@ -77,7 +85,9 @@ class MyRoonApi:
 
             album = self.get_zone_data()
 
-            self.roonapi.register_queue_callback(self.__queue_callback, album["zone_id"])
+            self.roonapi.register_queue_callback(
+                self.__queue_callback, album["zone_id"]
+            )
             self.roonapi.register_state_callback(self.__state_callback)
         except OSError:
             self.logger.info("Please authorise first using discovery.py")
@@ -87,17 +97,19 @@ class MyRoonApi:
         roonapi = self.__get_roonapi()
         for zone_id, zone_info in roonapi.zones.items():
             if zone_info["display_name"] == self.zone_name:
-                    zone = roonapi.zones[zone_id]
-                    # pprint(zone )
-                    data = {"state": zone["state"], 
-                            "url": None, 
-                            "artist": "", 
-                            "zone_id": zone_id,
-                            "title": "", 
-                            "track": ""}
-                    if "now_playing" in zone:
-                        data.update(self.__get_album_data(zone["now_playing"]))
-                    return data
+                zone = roonapi.zones[zone_id]
+                # pprint(zone )
+                data = {
+                    "state": zone["state"],
+                    "zone_id": zone_id,
+                    "url": self.BLACK_PIXEL,
+                    "artist": "",
+                    "title": "",
+                    "track": "",
+                }
+                if "now_playing" in zone:
+                    data.update(self.__get_album_data(zone["now_playing"]))
+                return data
         return None
 
     def __get_album_data(self, now_playing) -> Dict[str, Any]:
@@ -106,9 +118,11 @@ class MyRoonApi:
             "artist": now_playing["three_line"]["line2"],
             "title": now_playing["three_line"]["line3"],
             "track": now_playing["three_line"]["line1"],
-            "url": self.roonapi.get_image(now_playing["image_key"], width=self.image_size, height=self.image_size),
+            "url": self.roonapi.get_image(
+                now_playing["image_key"], width=self.image_size, height=self.image_size
+            ),
         }
-    
+
     def __save_credentials(self, core_id: str, token: str) -> None:
         with open(self.core_id_fname, "w") as f:
             f.write(core_id)
@@ -141,5 +155,3 @@ class MyRoonApi:
         if album and self.notify_clients:
             evdata = self.__get_album_data(album)
             asyncio.run(self.notify_clients(evdata))
-
-
