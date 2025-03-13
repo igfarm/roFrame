@@ -37,6 +37,8 @@ slideshow_enabled = os.getenv("SLIDESHOW", "on") == "on"
 slideshow_folder = os.getenv("SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures"))
 slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
 
+BLACK_PIXEL = "data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -63,7 +65,8 @@ def background_thread():
     """
     while not thread_stop_event.is_set():
         myRoonApi = getRoonApi()
-        state = myRoonApi.get_zone_state()
+        album = myRoonApi.get_zone_data()
+        state = album.get("state")
         if state == "playing":
             display(True)
         else:
@@ -79,7 +82,7 @@ def background_thread():
 @app.route("/")
 def index():
     images = []
-    art_images = ["data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="]
+    art_images = [BLACK_PIXEL]
     if slideshow_enabled:
         images = os.listdir(slideshow_folder)
         image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
@@ -130,20 +133,10 @@ def handle_disconnect():
 def trigger_album_update():
     logger.info("trigger_album_update")
     myRoonApi = getRoonApi()
-    copy = myRoonApi.get_copy()
-    state = myRoonApi.get_zone_state()
-    message = {
-        "name": name,
-        "album_cover_url": myRoonApi.get_image_url(image_size=image_size),
-        "state": state,
-        "image_size": image_size,
-        "album_title": copy["title"],
-        "album_artist": copy["artist"],
-        "album_track": copy["track"],
-    }
-    asyncio.run(notify_clients(message))  # Use asyncio.run to await the coroutine
+    album = myRoonApi.get_zone_data()
+    asyncio.run(notify_clients(album)) # Use asyncio.run to await the coroutine
 
-    if state == "playing":
+    if album["state"] == "playing":
         display(True)
 
 
@@ -151,7 +144,7 @@ async def notify_clients(message):
     logger.info("notify_clients")
     logger.info(message)
     socketio.emit("album_update", message)
-    if "state" in message and message["state"] == "playing":
+    if  message.get("state") == "playing":
         display(True)
 
 if __name__ == "__main__":

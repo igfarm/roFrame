@@ -74,7 +74,7 @@
         socket.on('album_update', function(data) {
             console.log('Album update received:', data)
 
-            if (data.album_cover_url !== undefined) {
+            if (data.url !== undefined) {
                 console.log("updating album");
 
                 if (data.state === 'playing') {
@@ -83,10 +83,10 @@
                     document.getElementById('album_track').style.fontSize = '1px';
 
                     document.getElementById('album_info').classList.remove('d-none');
-                    document.getElementById('album_img').src = data.album_cover_url;
-                    document.getElementById('album_artist').innerText = data.album_artist;
-                    document.getElementById('album_title').innerText = data.album_title;
-                    document.getElementById('album_track').innerText = data.album_track;
+                    document.getElementById('album_img').src = data.url;
+                    document.getElementById('album_artist').innerText = data.artist;
+                    document.getElementById('album_title').innerText = data.title;
+                    document.getElementById('album_track').innerText = data.track;
 
                     let size = getFonteSize(document.getElementById('album_artist').innerText, 40, 80);
                     document.getElementById('album_artist').style.fontSize = size + 'px';
