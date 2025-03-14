@@ -4,7 +4,7 @@ from datetime import datetime
 import zoneinfo
 import time
 from threading import Event
-import asyncio 
+import asyncio
 import logging
 
 from flask import Flask, render_template, jsonify, send_from_directory
@@ -21,9 +21,7 @@ my_tz = zoneinfo.ZoneInfo(os.getenv("TZ", "America/New_York"))
 myRoonApi = None
 
 app = Flask(__name__)
-socketio = SocketIO(
-    app, cors_allowed_origins="*"
-)
+socketio = SocketIO(app, cors_allowed_origins="*")
 thread = None
 thread_stop_event = Event()
 
@@ -34,12 +32,15 @@ display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
 display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
 display_control = os.getenv("DISPLAY_CONTROL", "off")
 slideshow_enabled = os.getenv("SLIDESHOW", "on") == "on"
-slideshow_folder = os.getenv("SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures"))
+slideshow_folder = os.getenv(
+    "SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures")
+)
 slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 def getRoonApi():
     global myRoonApi
@@ -63,7 +64,8 @@ def background_thread():
     """
     while not thread_stop_event.is_set():
         myRoonApi = getRoonApi()
-        state = myRoonApi.get_zone_state()
+        album = myRoonApi.get_zone_data()
+        state = album.get("state")
         if state == "playing":
             display(True)
         else:
@@ -79,12 +81,14 @@ def background_thread():
 @app.route("/")
 def index():
     images = []
-    art_images = ["data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="]
+    art_images = []
     if slideshow_enabled:
         images = os.listdir(slideshow_folder)
         image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
         images = [
-            img for img in images if os.path.splitext(img)[1].lower() in image_extensions
+            img
+            for img in images
+            if os.path.splitext(img)[1].lower() in image_extensions
         ]
         if not images:
             art_images = [generate_mondrian() for _ in range(10)]
@@ -130,20 +134,10 @@ def handle_disconnect():
 def trigger_album_update():
     logger.info("trigger_album_update")
     myRoonApi = getRoonApi()
-    copy = myRoonApi.get_copy()
-    state = myRoonApi.get_zone_state()
-    message = {
-        "name": name,
-        "album_cover_url": myRoonApi.get_image_url(image_size=image_size),
-        "state": state,
-        "image_size": image_size,
-        "album_title": copy["title"],
-        "album_artist": copy["artist"],
-        "album_track": copy["track"],
-    }
-    asyncio.run(notify_clients(message))  # Use asyncio.run to await the coroutine
+    album = myRoonApi.get_zone_data()
+    asyncio.run(notify_clients(album))  # Use asyncio.run to await the coroutine
 
-    if state == "playing":
+    if album["state"] == "playing":
         display(True)
 
 
@@ -151,8 +145,9 @@ async def notify_clients(message):
     logger.info("notify_clients")
     logger.info(message)
     socketio.emit("album_update", message)
-    if "state" in message and message["state"] == "playing":
+    if message.get("state") == "playing":
         display(True)
+
 
 if __name__ == "__main__":
     socketio.run(app, debug=True, port=port, host="0.0.0.0", allow_unsafe_werkzeug=True)
