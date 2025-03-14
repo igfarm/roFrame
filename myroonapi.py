@@ -9,6 +9,10 @@ from roonapi import RoonApi, RoonDiscovery
 
 class MyRoonApi:
 
+    BLACK_PIXEL = (
+        "data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="
+    )
+
     def __init__(self) -> None:
         self.zone_name = os.environ.get("ROON_ZONE", None)
         self.core_id_fname = os.environ.get("ROON_CORE_ID_FNAME", "roon_core_id.txt")
@@ -16,6 +20,7 @@ class MyRoonApi:
         self.clients = set()
         self.notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
         self.logger = logging.getLogger(__name__)
+        self.image_size = os.environ.get("IMAGE_SIZE", 600)
 
         if self.zone_name is None:
             raise Exception(
@@ -52,10 +57,14 @@ class MyRoonApi:
         self.__save_credentials(api.core_id, api.token)
         api.stop()
 
-    def connect(self, notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None) -> None:
+    def connect(
+        self, notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
+    ) -> None:
         self.roonapi = None
 
-        if not os.path.exists(self.core_id_fname) or not os.path.exists(self.token_fname):
+        if not os.path.exists(self.core_id_fname) or not os.path.exists(
+            self.token_fname
+        ):
             self.logger.info("Please authorise first using discovery.py")
             exit()
 
@@ -72,55 +81,47 @@ class MyRoonApi:
 
             self.logger.info(server)
             self.roonapi = RoonApi(self.appinfo, token, server[0], server[1], True)
-
             self.notify_clients = notify_clients
-            self.roonapi.register_queue_callback(self.__queue_callback, self.get_zone_id())
+
+            album = self.get_zone_data()
+
+            self.roonapi.register_queue_callback(
+                self.__queue_callback, album["zone_id"]
+            )
             self.roonapi.register_state_callback(self.__state_callback)
         except OSError:
             self.logger.info("Please authorise first using discovery.py")
             exit()
 
-    def get_zone_id(self) -> Optional[str]:
+    def get_zone_data(self) -> Optional[str]:
         roonapi = self.__get_roonapi()
         for zone_id, zone_info in roonapi.zones.items():
             if zone_info["display_name"] == self.zone_name:
-                return zone_id
+                zone = roonapi.zones[zone_id]
+                # pprint(zone )
+                data = {
+                    "state": zone["state"],
+                    "zone_id": zone_id,
+                    "url": self.BLACK_PIXEL,
+                    "artist": "",
+                    "title": "",
+                    "track": "",
+                }
+                if "now_playing" in zone:
+                    data.update(self.__get_album_data(zone["now_playing"]))
+                return data
         return None
 
-    def get_zone_state(self) -> Optional[str]:
-        roonapi = self.__get_roonapi()
-        zone_id = self.get_zone_id()
-        if zone_id:
-            return roonapi.zones[zone_id]["state"]
-        return None
-
-    def get_image_url(self, image_size: int = 600) -> str:
-        # start with a single pixel gif
-        image_url = "data:image/gif;base64,R0lGODdhAQABAIABAAAAAAAAACwAAAAAAQABAAACAkwBADs="
-        if self.get_zone_state() in ["playing", "paused"]:
-            roonapi = self.__get_roonapi()
-            zone_id = self.get_zone_id()
-            if zone_id:
-                zone = roonapi.zones[zone_id]
-                if "now_playing" in zone:
-                    image_key = zone["now_playing"]["image_key"]
-                    image_url = roonapi.get_image(image_key, width=image_size, height=image_size)
-        return image_url
-
-    def get_copy(self) -> Dict[str, str]:
-        if self.get_zone_state() == "playing":
-            roonapi = self.__get_roonapi()
-            zone_id = self.get_zone_id()
-            if zone_id:
-                zone = roonapi.zones[zone_id]
-                if "now_playing" in zone:
-                    lines = zone["now_playing"]["three_line"]
-                    return {
-                        "artist": lines["line2"],
-                        "title": lines["line3"],
-                        "track": lines["line1"],
-                    }
-        return {"artist": "", "title": "", "track": ""}
+    def __get_album_data(self, now_playing) -> Dict[str, Any]:
+        return {
+            "image_size": self.image_size,
+            "artist": now_playing["three_line"]["line2"],
+            "title": now_playing["three_line"]["line3"],
+            "track": now_playing["three_line"]["line1"],
+            "url": self.roonapi.get_image(
+                now_playing["image_key"], width=self.image_size, height=self.image_size
+            ),
+        }
 
     def __save_credentials(self, core_id: str, token: str) -> None:
         with open(self.core_id_fname, "w") as f:
@@ -130,18 +131,9 @@ class MyRoonApi:
 
     def __state_callback(self, event: str, changed_items: Any) -> None:
         if event == "zones_changed":
-            state = self.get_zone_state()
-            copy = self.get_copy()
-            url = self.get_image_url()
-            evdata = {
-                "album_artist": copy["artist"],
-                "album_title": copy["title"],
-                "album_track": copy["track"],
-                "album_cover_url": url,
-                "state": state,
-            }
+            data = self.get_zone_data()
             if self.notify_clients:
-                asyncio.run(self.notify_clients(evdata))
+                asyncio.run(self.notify_clients(data))
 
     def __get_roonapi(self) -> RoonApi:
         if self.roonapi is None:
@@ -161,14 +153,5 @@ class MyRoonApi:
         self.logger.info("queue_callback")
         album = self.__extract_album(data)
         if album and self.notify_clients:
-            img = self.roonapi.get_image(album["image_key"], width=600, height=600)
-            evdata = {
-                "album_artist": album["three_line"]["line2"],
-                "album_title": album["three_line"]["line3"],
-                "album_track": album["three_line"]["line1"],
-                "album_cover_url": img,
-                "state": self.get_zone_state(),
-            }
+            evdata = self.__get_album_data(album)
             asyncio.run(self.notify_clients(evdata))
-
-
