@@ -81,7 +81,7 @@ def background_thread():
 @app.route("/")
 def index():
     images = []
-    art_images = [MyRoonApi.BLACK_PIXEL]
+    art_images = []
     if slideshow_enabled:
         images = os.listdir(slideshow_folder)
         image_extensions = {".png", ".jpg", ".jpeg", ".gif", ".bmp", ".tiff"}
