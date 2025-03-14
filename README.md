@@ -14,7 +14,7 @@ A simple digital frame that shows "Now Playing" information from a Roon audio zo
 
 ## Setup
 
-Assuming you have freshly installed the latest Raspberry Pi OS Lite on an SD card, enabled Wi-Fi and SSH access, and opened a remote terminal to the board.
+Assuming you have freshly installed the latest Raspberry Pi OS Lite (bookworm) on an SD card, enabled Wi-Fi and SSH access, and opened a remote terminal to the board.
 
 ### Install Application
 
@@ -107,8 +107,11 @@ The frame should come up and you should see some pictures on the screen.
 
 In my case, this is what I used:
 
-- Raspberry Pi 4 with 2GB RAM - https://www.adafruit.com/product/4292
 - 10.1" display - https://www.amazon.com/dp/B09XDK2FRR
+- Raspberry Pi 4 with 2GB RAM - https://www.amazon.com/gp/product/B07TYK4RL8
+- 32GB SD Card - https://www.amazon.com/SanDisk-128GB-Extreme-UHS-I-Memory/dp/B09X7FXHVJ
+
+It may run on different hardware, but software configuration might be different than described here.
 
 ![roFrame back](assets/pic2.png)
 
