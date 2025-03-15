@@ -156,7 +156,9 @@ if __name__ == "__main__":
     if not myRoonApi.check_auth():
         logger.error("Please authorise first using discovery.py")
         exit()
-    myRoonApi.connect(notify_clients=notify_clients)
+    if not myRoonApi.connect(notify_clients=notify_clients):
+        logger.error("Unable to connect to Roon")
+        exit()
 
     # Start the Flask web server
     socketio.run(
