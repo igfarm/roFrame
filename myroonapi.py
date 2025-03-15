@@ -21,6 +21,7 @@ class MyRoonApi:
         self.notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
         self.logger = logging.getLogger(__name__)
         self.image_size = os.environ.get("IMAGE_SIZE", 600)
+        self.connected = False
 
         if self.zone_name is None:
             raise Exception(
@@ -35,6 +36,14 @@ class MyRoonApi:
             "email": "jaime@igfarm.com",
         }
 
+    def check_auth(self) -> bool:
+        if not os.path.exists(self.core_id_fname) or not os.path.exists(
+            self.token_fname
+        ):
+            self.logger.error("auth files not found")
+            return False
+        return True
+
     def register(self) -> None:
         discover = RoonDiscovery(None)
         server = discover.first()
@@ -43,7 +52,7 @@ class MyRoonApi:
         self.logger.info("Found the following server")
         self.logger.info(server)
 
-        api = RoonApi(self.appinfo, None, server[0], server[1], False)
+        api = RoonApi(self.appinfo, None, server[0], server[1], True)
         while api.token is None:
             self.logger.info("Waiting for authorisation")
             time.sleep(1)
@@ -59,14 +68,14 @@ class MyRoonApi:
 
     def connect(
         self, notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
-    ) -> None:
+    ) -> bool:
         self.roonapi = None
 
         if not os.path.exists(self.core_id_fname) or not os.path.exists(
             self.token_fname
         ):
-            self.logger.info("Please authorise first using discovery.py")
-            exit()
+            self.logger.error("Please authorise first using discovery.py")
+            return False
 
         try:
             with open(self.core_id_fname) as f:
@@ -79,8 +88,12 @@ class MyRoonApi:
             server = discover.first()
             discover.stop()
 
+            if server[0] is None:
+                self.logger.error("No server found")
+                return False
+
             self.logger.info(server)
-            self.roonapi = RoonApi(self.appinfo, token, server[0], server[1], True)
+            self.roonapi = RoonApi(self.appinfo, token, server[0], server[1], False)
             self.notify_clients = notify_clients
 
             album = self.get_zone_data()
@@ -89,9 +102,14 @@ class MyRoonApi:
                 self.__queue_callback, album["zone_id"]
             )
             self.roonapi.register_state_callback(self.__state_callback)
+            self.connected = True
+            return True
         except OSError:
-            self.logger.info("Please authorise first using discovery.py")
-            exit()
+            self.logger.error("Exception connecting to Roon")
+            return False
+
+    def is_connected(self) -> bool:
+        return self.connected
 
     def get_zone_data(self) -> Optional[str]:
         roonapi = self.__get_roonapi()

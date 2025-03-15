@@ -776,6 +776,7 @@ class RoonApi:  # pylint: disable=too-many-instance-attributes, too-many-lines
         host,
         port,
         blocking_init=True,
+        timeout=0,
     ):
         """
         Set up the connection with Roon.
@@ -787,6 +788,7 @@ class RoonApi:  # pylint: disable=too-many-instance-attributes, too-many-lines
         blocking_init: By default the init will halt untill the socket is connected and the app is authenticated,
                        if you set bool to False the init will continue but you will only receive data once the connection is fully initialized.
                        The latter is preferred if you're (only) using the callbacks
+        timeout: If blocking_init is set to False, this will be the maximum time to wait for the connection to be initialized.
         """
         self._appinfo = appinfo
         self._token = token
@@ -803,6 +805,14 @@ class RoonApi:  # pylint: disable=too-many-instance-attributes, too-many-lines
         if blocking_init:
             while not self.ready and not self._exit:
                 time.sleep(0.05)
+
+        elif timeout > 0:
+            timeout = 5
+            while not self.ready and not self._exit:
+                time.sleep(0.05)
+                timeout -= 0.05
+                if timeout <= 0:
+                    raise Exception("Roon API init timed out")
 
         # fill zones and outputs dicts one time so the data is available right away
         # This might not be needed as the on change callback may have already done this
