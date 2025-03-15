@@ -50,6 +50,26 @@ Test that things are working as expected by starting the frame application:
 
 and open a browser and open the URL of the machine the app is running on as indicated when running the app.
 
+### Parameters in `.env` file
+
+The application requires the following environment variables to be set.
+
+| Variable Name                  | Description                         | Required | Possible Values                                                                  | Default            |
+| ------------------------------ | ----------------------------------- | -------- | -------------------------------------------------------------------------------- | ------------------ |
+| `DISPLAY_CONTROL`              | Enables or disables display control | ❌ No    | `on`, `off`                                                                      | `on`               |
+| `DISPLAY_OFF_HOUR`             | Hour to turn off the display        | ❌ No    | `0-23` (e.g., `22`)                                                              | `22`               |
+| `DISPLAY_ON_HOUR`              | Hour to turn on the display         | ❌ No    | `0-23` (e.g., `10`)                                                              | `10`               |
+| `IMAGE_SIZE`                   | Image size in pixels                | ❌ No    | Any number (e.g., `600`)                                                         | `600`              |
+| `NAME`                         | Device name                         | ❌ No    | Any string (e.g., `roFrame`)                                                     | `roFrame`          |
+| `PORT`                         | Application port                    | ❌ No    | Any number (e.g., `5006`)                                                        | `5006`             |
+| `ROON_API_KEY_FNAME`           | Filename for Roon API key           | ❌ No    | Any filename                                                                     | `roon_api_key.txt` |
+| `ROON_CORE_ID_FNAME`           | Filename for Roon Core ID           | ❌ No    | Any filename                                                                     | `roon_core_id.txt` |
+| `ROON_ZONE`                    | Roon zone name                      | ✅ Yes   | Any string (e.g., `Livingroom`)                                                  | `Livingroom`       |
+| `SLIDESHOW`                    | Enables or disables slideshow       | ❌ No    | `on`, `off`                                                                      | `on`               |
+| `SLIDESHOW_FOLDER`             | Folder path for slideshow images    | ❌ No    | Any folder path (e.g., `./pictures`)                                             | `./pictures`       |
+| `SLIDESHOW_TRANSITION_SECONDS` | Time per slide transition (seconds) | ❌ No    | Any number (e.g., `15`)                                                          | `15`               |
+| `TZ`                           | Timezone setting                    | ❌ No    | Valid timezone, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones | `America/New_York` |
+
 ### Install and configure OS
 
 Install required packages:
@@ -102,6 +122,16 @@ Reboot the Pi:
     sudo reboot
 
 The frame should come up and you should see some pictures on the screen.
+
+### Debugging
+
+To see the frame service logs:
+
+    journalctl -u frame -e
+
+To see the kiosk service logs:
+
+    journalctl -u kiosk -e
 
 ## Hardware
 
