@@ -776,7 +776,7 @@ class RoonApi:  # pylint: disable=too-many-instance-attributes, too-many-lines
         host,
         port,
         blocking_init=True,
-        timeout=0,
+        timeout=5,
     ):
         """
         Set up the connection with Roon.
