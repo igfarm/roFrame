@@ -23,11 +23,11 @@ class MyRoonApi:
         self.image_size = os.environ.get("IMAGE_SIZE", 600)
         self.connected = False
 
-        if  not bool(os.environ.get("NAME", "")):
-             raise Exception(
+        if not bool(os.environ.get("NAME", "")):
+            raise Exception(
                 "NAME environment variable must be set and have unique name for this device"
             )
-          
+
         self.appinfo = {
             "extension_id": "com.igfarm.roFrame",
             "display_name": "roFrame - " + os.environ.get("NAME", "not assigned"),
@@ -45,7 +45,6 @@ class MyRoonApi:
                 "publisher": "igfarm",
                 "email": "jaime@igfarm.com",
             }
-
 
     def check_auth(self) -> bool:
         if not os.path.exists(self.core_id_fname) or not os.path.exists(
@@ -68,7 +67,7 @@ class MyRoonApi:
             self.logger.info("Waiting for authorisation")
             time.sleep(1)
 
-        album = self.get_zone_data(show_zones = True)
+        album = self.get_zone_data(show_zones=True)
         if album is None:
             self.logger.warning("Please set ROON_ZONE to one of the values above")
 
@@ -130,7 +129,7 @@ class MyRoonApi:
     def is_connected(self) -> bool:
         return self.connected
 
-    def get_zone_data(self, show_zones = False) -> Optional[str]:
+    def get_zone_data(self, show_zones=False) -> Optional[str]:
         roonapi = self.__get_roonapi()
         for zone_id, zone_info in roonapi.zones.items():
             print("- " + zone_info["display_name"])
