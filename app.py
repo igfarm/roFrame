@@ -18,7 +18,7 @@ load_dotenv()
 
 my_tz = zoneinfo.ZoneInfo(os.getenv("TZ", "America/New_York"))
 
-myRoonApi = None
+myRoonApi = MyRoonApi()
 
 app = Flask(__name__)
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -44,9 +44,11 @@ logger = logging.getLogger(__name__)
 
 def getRoonApi():
     global myRoonApi
-    if myRoonApi is None:
-        myRoonApi = MyRoonApi()
-        myRoonApi.connect(notify_clients=notify_clients)
+
+    # if not myRoonApi.is_connected():
+    #    logger.info("Connecting to Roon API")
+    #    myRoonApi.connect(notify_clients=notify_clients)
+
     return myRoonApi
 
 
@@ -116,7 +118,7 @@ def static_files(filename):
 
 @socketio.on("connect")
 def handle_connect():
-    logger.info("Client connected")
+    logger.info("Socket client connected")
     emit("response", {"data": "Connected"})
 
     # Start the background thread if it’s not running yet
@@ -150,4 +152,15 @@ async def notify_clients(message):
 
 
 if __name__ == "__main__":
-    socketio.run(app, debug=True, port=port, host="0.0.0.0", allow_unsafe_werkzeug=True)
+    # start the Roon
+    if not myRoonApi.check_auth():
+        logger.error("Please authorise first using discovery.py")
+        exit()
+    if not myRoonApi.connect(notify_clients=notify_clients):
+        logger.error("Unable to connect to Roon")
+        exit()
+
+    # Start the Flask web server
+    socketio.run(
+        app, debug=False, port=port, host="0.0.0.0", allow_unsafe_werkzeug=True
+    )
