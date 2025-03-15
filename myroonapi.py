@@ -23,18 +23,29 @@ class MyRoonApi:
         self.image_size = os.environ.get("IMAGE_SIZE", 600)
         self.connected = False
 
-        if self.zone_name is None:
-            raise Exception(
-                "ROON_ZONE environment variable must be set to the name of the zone you want to control"
+        if  not bool(os.environ.get("NAME", "")):
+             raise Exception(
+                "NAME environment variable must be set and have unique name for this device"
             )
-
+          
         self.appinfo = {
-            "extension_id": "roFrame",
-            "display_name": "Frame for Roon",
-            "display_version": "1.0.0",
+            "extension_id": "com.igfarm.roFrame",
+            "display_name": "roFrame - " + os.environ.get("NAME", "not assigned"),
+            "display_version": "1.0.1",
             "publisher": "igfarm",
             "email": "jaime@igfarm.com",
+            "website": "https://github.com/igfarm/roFrame",
         }
+
+        if os.environ.get("ROON_USE_OLD_APPINFO", "yes") == "yes":
+            self.appinfo = {
+                "extension_id": "roFrame",
+                "display_name": "Frame for Roon",
+                "display_version": "1.0.0",
+                "publisher": "igfarm",
+                "email": "jaime@igfarm.com",
+            }
+
 
     def check_auth(self) -> bool:
         if not os.path.exists(self.core_id_fname) or not os.path.exists(
@@ -52,19 +63,23 @@ class MyRoonApi:
         self.logger.info("Found the following server")
         self.logger.info(server)
 
-        api = RoonApi(self.appinfo, None, server[0], server[1], True)
-        while api.token is None:
+        self.roonapi = RoonApi(self.appinfo, None, server[0], server[1], True)
+        while self.roonapi.token is None:
             self.logger.info("Waiting for authorisation")
             time.sleep(1)
 
+        album = self.get_zone_data(show_zones = True)
+        if album is None:
+            self.logger.warning("Please set ROON_ZONE to one of the values above")
+
         self.logger.info("Got authorisation")
-        self.logger.info(api.host)
-        self.logger.info(api.core_name)
-        self.logger.info(api.core_id)
+        self.logger.info(self.roonapi.host)
+        self.logger.info(self.roonapi.core_name)
+        self.logger.info(self.roonapi.core_id)
 
         # This is what we need to reconnect
-        self.__save_credentials(api.core_id, api.token)
-        api.stop()
+        self.__save_credentials(self.roonapi.core_id, self.roonapi.token)
+        self.roonapi.stop()
 
     def connect(
         self, notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
@@ -75,6 +90,10 @@ class MyRoonApi:
             self.token_fname
         ):
             self.logger.error("Please authorise first using discovery.py")
+            return False
+
+        if not bool(self.zone_name):
+            self.logger.error("ROON_ZONE not found or blank")
             return False
 
         try:
@@ -111,9 +130,10 @@ class MyRoonApi:
     def is_connected(self) -> bool:
         return self.connected
 
-    def get_zone_data(self) -> Optional[str]:
+    def get_zone_data(self, show_zones = False) -> Optional[str]:
         roonapi = self.__get_roonapi()
         for zone_id, zone_info in roonapi.zones.items():
+            print("- " + zone_info["display_name"])
             if zone_info["display_name"] == self.zone_name:
                 zone = roonapi.zones[zone_id]
                 # pprint(zone )
