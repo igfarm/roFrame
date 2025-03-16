@@ -62,9 +62,7 @@
         }
     </style>
     <script src="/static/socket.io.min.js"></script>
-    <script>        
-        var show_album = false;
-
+    <script>
         var socket = io.connect(location.hostname + ':' + location.port );
         socket.on('connection', function() {
             console.log('Socket connected');
@@ -72,6 +70,7 @@
         });
 
         function show_row(id) {
+                console.log('Showing row:', id);
                 let rows = document.getElementsByClassName('mytab');
                 for (let i = 0; i < rows.length; i++) {
                     rows[i].classList.add('d-none');
@@ -90,6 +89,7 @@
             if (data.url !== undefined) {
                 console.log("updating album");
 
+                console.log(data.state);
                 if (data.state === 'playing') {
                     document.getElementById('album_artist').style.fontSize = '1px';
                     document.getElementById('album_title').style.fontSize = '1px';
@@ -115,16 +115,14 @@
             if (data.state === 'playing' || data.state === 'loading') {
                 console.log("showing album");
                 show_row('album');
-                show_album = true;
+                slideshow.setShowAlbum(true);
             }
             else {
-                show_album = false;
                 console.log("showing slideshow");
-                showNextSlide();
+                slideshow.setShowAlbum(false);
             }
         });
 
-        
         socket.on('response', function(data) {
             console.log('Response received:', data);
         });
@@ -168,71 +166,6 @@
             bestFit = Math.min(180, bestFit); 
             return bestFit;
         }
-
-        function slideshow() {
-            let currentIndex = 0;
-            const slides = document.querySelectorAll('.slide');
-            const totalSlides = slides.length;
-            const slideshowClockRatio = {{ slideshow_clock_ratio }}; 
-
-            // This array holds the slide indices [0, 1, 2, ..., totalSlides-1]
-            let shuffledIndices = [];
-
-            // Simple function to shuffle an array (Fisher-Yates shuffle)
-            function shuffleArray(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-            }
-
-            // Initialize and shuffle the indices once
-            function initShuffledIndices() {
-                shuffledIndices = [...Array(totalSlides).keys()]; // [0,1,2,...]
-                shuffleArray(shuffledIndices);
-            }
-
-            // Reveal the next slide in the current shuffled order
-            function showNextSlide() {
-                if (show_album) {
-                    return;
-                }
-
-                // Determine if we should show the clock based on the ratio
-                if (Math.random() < slideshowClockRatio) {
-                    console.log('showing clock');
-                    show_row('clock');
-                } else {
-                    console.log('showing next slide');
-                    show_row('slideshow');
-                    // Remove the 'active' class from the current slide
-                    slides[shuffledIndices[currentIndex]].classList.remove('active');
-
-                    // Move to the next index
-                    currentIndex++;
-
-                    // If we’ve reached the end of this shuffle set,
-                    // start over and reshuffle.
-                    if (currentIndex >= totalSlides) {
-                        currentIndex = 0;
-                        shuffleArray(shuffledIndices);  // Shuffle again for a new order
-                    }
-
-                    // Add the 'active' class to the new current slide
-                    slides[shuffledIndices[currentIndex]].classList.add('active');
-                }
-            }
-
-            // Run the initializer
-            initShuffledIndices();
-
-            // Set the first slide visible in the newly shuffled order
-            slides[shuffledIndices[0]].classList.add('active');
-            
-            // Start the slideshow and set the interval
-            showNextSlide();
-            setInterval(showNextSlide, {{ transition_seconds }} * 1000); 
-        }
     </script>
 </head>
 <body>
@@ -267,10 +200,15 @@
             </div>
         </div>
     </div>
-    <script>
-        slideshow();
-    </script>
     <script src="/static/bootstrap.bundle.min.js"></script>
+    <script src="/static/slideshow.js"></script>
     <script src="/static/clock.js"></script>
+    <script>
+        slideshow.init({
+            showRow: show_row,
+            slideshowClockRatio: {{ slideshow_clock_ratio }},
+            transitionSeconds: {{ transition_seconds }}
+        });
+    </script>
 </body>
 </html>
