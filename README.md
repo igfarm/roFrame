@@ -42,7 +42,7 @@ Start the discovery program, and go to Roon extensions to approve it:
 
     python discovery.py
 
-This will list all available zones. Edit .env file to add update `ROON_ZONE` to one of those values.
+This will list all available zones. Edit `.env` file to add update `ROON_ZONE` to one of those values if you have not done so already.
 
 Add a few images to the `pictures` folder. In my case, the panel I am using has a resolution of 1024x600, so pictures should be that size. If you don't do this step, you will be rewarded with some modern art on your frame.
 
