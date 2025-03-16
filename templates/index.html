@@ -57,6 +57,9 @@
             filter: brightness(80%);
             line-height: 1.2em;
         }
+        #clockContainer {
+            width: 100% !important;
+        }
     </style>
     <script src="/static/socket.io.min.js"></script>
     <script>
@@ -101,16 +104,24 @@
 
             if (data.state === 'playing' || data.state === 'loading') {
                 console.log("showing album");
-                document.getElementById('slideshow').classList.add('d-none');
-                document.getElementById('album').classList.remove('d-none');
+                show_row('album');
             }
             else {
                 console.log("showing slideshow");
-                document.getElementById('slideshow').classList.remove('d-none');
-                document.getElementById('album').classList.add('d-none');
+                //show_row('slideshow');
+                show_row('clock');
+            }
+
+            function show_row(id) {
+                let rows = document.getElementsByClassName('mytab');
+                for (let i = 0; i < rows.length; i++) {
+                    rows[i].classList.add('d-none');
+                }
+                document.getElementById(id).classList.remove('d-none');
             }
         });
 
+        
         socket.on('response', function(data) {
             console.log('Response received:', data);
         });
@@ -208,8 +219,8 @@
     </script>
 </head>
 <body>
-    <div class="container">
-        <div id="album"  class="row d-none">
+    <div class="container-fluid p-0">
+        <div id="album"  class="row d-none mytab">
           <div class="col">
             <div class="row flex-nowrap">
                 <div id="album_cover" class="col">
@@ -223,7 +234,12 @@
             </div>  
             </div>
         </div>
-        <div id="slideshow" class="row">
+        <div id="clock" class="row d-none mytab">   
+            <div id="clockContainer" class="col">
+                <div id="clock"></div>
+                </div>
+        </div>
+        <div id="slideshow" class="row mytab">
             <div class="col">
                 {% for image in images %}
                 <img class="slide" src="{{ url_for('slideshow_pic', filename=image) }}" alt="Slideshow Image">
@@ -232,12 +248,12 @@
                 <img class="slide" src="{{ art_image }}" alt="Slideshow Image">
                 {% endfor %}
             </div>
-          </div>
-      </div>
+        </div>
     </div>
     <script>
         slideshow();
     </script>
     <script src="/static/bootstrap.bundle.min.js"></script>
+    <script src="/static/clock.js"></script>
 </body>
 </html>
