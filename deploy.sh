@@ -10,4 +10,4 @@ rsync -av --exclude deploy.sh \
   --exclude '.env' \
   --exclude 'roon_*.txt' \
   ./ $HOST:work/roFrame/
-ssh $HOST sudo reboot
+#ssh $HOST sudo reboot

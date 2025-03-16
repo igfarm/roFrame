@@ -6,6 +6,7 @@ import time
 from threading import Event
 import asyncio
 import logging
+import sdnotify  # Add this import
 
 from flask import Flask, render_template, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
@@ -162,6 +163,10 @@ if __name__ == "__main__":
     if not myRoonApi.connect(notify_clients=notify_clients):
         logger.error("Unable to connect to Roon")
         exit()
+
+    # Notify systemd that the service is ready
+    n = sdnotify.SystemdNotifier()
+    n.notify("READY=1")
 
     # Start the Flask web server
     socketio.run(

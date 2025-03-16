@@ -81,37 +81,21 @@ Install required packages:
 
 Create an `.xinit` file that `startx` will execute once it starts running:
 
-    cat << EOF > ~/.xinitrc
-    #!/bin/bash
-
-    # A small wait to make sure needed services have started
-    sleep 10
-
-    # Disable mouse and power management
-    unclutter -idle 0.1 -root &
-    xset dpms 0 0 0
-    xset -dpms      # Disable power management
-    xset s off      # Disable screen saver
-    xset s noblank  # Prevent screen blanking
-
-    # Start Chromium in kiosk mode
-    exec chromium-browser --noerrdialogs --disable-infobars --hide-scrollbars --kiosk "http://127.0.0.1:5006"
-    EOF
-
+    cp etc/xinitrc  ~/.xinitrc
     chmod +x ~/.xinitrc
 
 Install the application's service:
 
     cd ~/work/roFrame
 
-    sudo cp frame.service /lib/systemd/system/
+    sudo cp etc/frame.service /lib/systemd/system/
     sudo sed -i "s|PATH|$(pwd)|g" /lib/systemd/system/frame.service
     sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/frame.service
     sudo systemctl enable frame.service
 
 Install the kiosk service:
 
-    sudo cp kiosk.service /lib/systemd/system/
+    sudo cp etc/kiosk.service /lib/systemd/system/
     sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/kiosk.service
     sudo systemctl enable kiosk.service
 
