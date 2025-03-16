@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="3000">
-    <title>{{ name }} - Album</title>
+    <title>roFrame - {{ name }}</title>
     <link href="/static/bootstrap.min.css" rel="stylesheet">
     <style>
 
@@ -62,12 +62,22 @@
         }
     </style>
     <script src="/static/socket.io.min.js"></script>
-    <script>
+    <script>        
+        var show_album = false;
+
         var socket = io.connect(location.hostname + ':' + location.port );
         socket.on('connection', function() {
             console.log('Socket connected');
 
         });
+
+        function show_row(id) {
+                let rows = document.getElementsByClassName('mytab');
+                for (let i = 0; i < rows.length; i++) {
+                    rows[i].classList.add('d-none');
+                }
+                document.getElementById(id).classList.remove('d-none');
+            }
 
         setTimeout(function() {
                 console.log('Triggering album update');
@@ -105,19 +115,12 @@
             if (data.state === 'playing' || data.state === 'loading') {
                 console.log("showing album");
                 show_row('album');
+                show_album = true;
             }
             else {
+                show_album = false;
                 console.log("showing slideshow");
-                //show_row('slideshow');
-                show_row('clock');
-            }
-
-            function show_row(id) {
-                let rows = document.getElementsByClassName('mytab');
-                for (let i = 0; i < rows.length; i++) {
-                    rows[i].classList.add('d-none');
-                }
-                document.getElementById(id).classList.remove('d-none');
+                showNextSlide();
             }
         });
 
@@ -169,8 +172,8 @@
         function slideshow() {
             let currentIndex = 0;
             const slides = document.querySelectorAll('.slide');
-            console.log(slides);
             const totalSlides = slides.length;
+            const slideshowClockRatio = {{ slideshow_clock_ratio }}; 
 
             // This array holds the slide indices [0, 1, 2, ..., totalSlides-1]
             let shuffledIndices = [];
@@ -191,21 +194,33 @@
 
             // Reveal the next slide in the current shuffled order
             function showNextSlide() {
-                // Remove the 'active' class from the current slide
-                slides[shuffledIndices[currentIndex]].classList.remove('active');
-
-                // Move to the next index
-                currentIndex++;
-
-                // If we’ve reached the end of this shuffle set,
-                // start over and reshuffle.
-                if (currentIndex >= totalSlides) {
-                    currentIndex = 0;
-                    shuffleArray(shuffledIndices);  // Shuffle again for a new order
+                if (show_album) {
+                    return;
                 }
 
-                // Add the 'active' class to the new current slide
-                slides[shuffledIndices[currentIndex]].classList.add('active');
+                // Determine if we should show the clock based on the ratio
+                if (Math.random() < slideshowClockRatio) {
+                    console.log('showing clock');
+                    show_row('clock');
+                } else {
+                    console.log('showing next slide');
+                    show_row('slideshow');
+                    // Remove the 'active' class from the current slide
+                    slides[shuffledIndices[currentIndex]].classList.remove('active');
+
+                    // Move to the next index
+                    currentIndex++;
+
+                    // If we’ve reached the end of this shuffle set,
+                    // start over and reshuffle.
+                    if (currentIndex >= totalSlides) {
+                        currentIndex = 0;
+                        shuffleArray(shuffledIndices);  // Shuffle again for a new order
+                    }
+
+                    // Add the 'active' class to the new current slide
+                    slides[shuffledIndices[currentIndex]].classList.add('active');
+                }
             }
 
             // Run the initializer
@@ -214,7 +229,9 @@
             // Set the first slide visible in the newly shuffled order
             slides[shuffledIndices[0]].classList.add('active');
             
-            setInterval(showNextSlide, {{ transition_seconds }} * 1000); // Change image every 20 seconds
+            // Start the slideshow and set the interval
+            showNextSlide();
+            setInterval(showNextSlide, {{ transition_seconds }} * 1000); 
         }
     </script>
 </head>
@@ -239,7 +256,7 @@
                 <div id="clock"></div>
                 </div>
         </div>
-        <div id="slideshow" class="row mytab">
+        <div id="slideshow" class="row d-none mytab">
             <div class="col">
                 {% for image in images %}
                 <img class="slide" src="{{ url_for('slideshow_pic', filename=image) }}" alt="Slideshow Image">
