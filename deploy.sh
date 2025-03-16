@@ -8,5 +8,6 @@ rsync -av --exclude deploy.sh \
   --exclude '*/__pycache__' \
   --exclude '.git*' \
   --exclude '.env' \
+  --exclude 'roon_*.txt' \
   ./ $HOST:work/roFrame/
 ssh $HOST sudo reboot
