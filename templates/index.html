@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="refresh" content="3000">
-    <title>{{ name }} - Album</title>
+    <title>roFrame - {{ name }}</title>
     <link href="/static/bootstrap.min.css" rel="stylesheet">
     <style>
 
@@ -57,6 +57,9 @@
             filter: brightness(80%);
             line-height: 1.2em;
         }
+        #clockContainer {
+            width: 100% !important;
+        }
     </style>
     <script src="/static/socket.io.min.js"></script>
     <script>
@@ -65,6 +68,15 @@
             console.log('Socket connected');
 
         });
+
+        function show_row(id) {
+                console.log('Showing row:', id);
+                let rows = document.getElementsByClassName('mytab');
+                for (let i = 0; i < rows.length; i++) {
+                    rows[i].classList.add('d-none');
+                }
+                document.getElementById(id).classList.remove('d-none');
+            }
 
         setTimeout(function() {
                 console.log('Triggering album update');
@@ -77,6 +89,7 @@
             if (data.url !== undefined) {
                 console.log("updating album");
 
+                console.log(data.state);
                 if (data.state === 'playing') {
                     document.getElementById('album_artist').style.fontSize = '1px';
                     document.getElementById('album_title').style.fontSize = '1px';
@@ -101,13 +114,12 @@
 
             if (data.state === 'playing' || data.state === 'loading') {
                 console.log("showing album");
-                document.getElementById('slideshow').classList.add('d-none');
-                document.getElementById('album').classList.remove('d-none');
+                show_row('album');
+                slideshow.setShowAlbum(true);
             }
             else {
                 console.log("showing slideshow");
-                document.getElementById('slideshow').classList.remove('d-none');
-                document.getElementById('album').classList.add('d-none');
+                slideshow.setShowAlbum(false);
             }
         });
 
@@ -154,62 +166,11 @@
             bestFit = Math.min(180, bestFit); 
             return bestFit;
         }
-
-        function slideshow() {
-            let currentIndex = 0;
-            const slides = document.querySelectorAll('.slide');
-            console.log(slides);
-            const totalSlides = slides.length;
-
-            // This array holds the slide indices [0, 1, 2, ..., totalSlides-1]
-            let shuffledIndices = [];
-
-            // Simple function to shuffle an array (Fisher-Yates shuffle)
-            function shuffleArray(array) {
-                for (let i = array.length - 1; i > 0; i--) {
-                    const j = Math.floor(Math.random() * (i + 1));
-                    [array[i], array[j]] = [array[j], array[i]];
-                }
-            }
-
-            // Initialize and shuffle the indices once
-            function initShuffledIndices() {
-                shuffledIndices = [...Array(totalSlides).keys()]; // [0,1,2,...]
-                shuffleArray(shuffledIndices);
-            }
-
-            // Reveal the next slide in the current shuffled order
-            function showNextSlide() {
-                // Remove the 'active' class from the current slide
-                slides[shuffledIndices[currentIndex]].classList.remove('active');
-
-                // Move to the next index
-                currentIndex++;
-
-                // If we’ve reached the end of this shuffle set,
-                // start over and reshuffle.
-                if (currentIndex >= totalSlides) {
-                    currentIndex = 0;
-                    shuffleArray(shuffledIndices);  // Shuffle again for a new order
-                }
-
-                // Add the 'active' class to the new current slide
-                slides[shuffledIndices[currentIndex]].classList.add('active');
-            }
-
-            // Run the initializer
-            initShuffledIndices();
-
-            // Set the first slide visible in the newly shuffled order
-            slides[shuffledIndices[0]].classList.add('active');
-            
-            setInterval(showNextSlide, {{ transition_seconds }} * 1000); // Change image every 20 seconds
-        }
     </script>
 </head>
 <body>
-    <div class="container">
-        <div id="album"  class="row d-none">
+    <div class="container-fluid p-0">
+        <div id="album"  class="row d-none mytab">
           <div class="col">
             <div class="row flex-nowrap">
                 <div id="album_cover" class="col">
@@ -223,7 +184,12 @@
             </div>  
             </div>
         </div>
-        <div id="slideshow" class="row">
+        <div id="clock" class="row d-none mytab">   
+            <div id="clockContainer" class="col">
+                <div id="clock"></div>
+                </div>
+        </div>
+        <div id="slideshow" class="row d-none mytab">
             <div class="col">
                 {% for image in images %}
                 <img class="slide" src="{{ url_for('slideshow_pic', filename=image) }}" alt="Slideshow Image">
@@ -232,12 +198,17 @@
                 <img class="slide" src="{{ art_image }}" alt="Slideshow Image">
                 {% endfor %}
             </div>
-          </div>
-      </div>
+        </div>
     </div>
-    <script>
-        slideshow();
-    </script>
     <script src="/static/bootstrap.bundle.min.js"></script>
+    <script src="/static/slideshow.js"></script>
+    <script src="/static/clock.js"></script>
+    <script>
+        slideshow.init({
+            showRow: show_row,
+            slideshowClockRatio: {{ slideshow_clock_ratio }},
+            transitionSeconds: {{ transition_seconds }}
+        });
+    </script>
 </body>
 </html>

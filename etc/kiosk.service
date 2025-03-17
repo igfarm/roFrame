@@ -1,11 +1,12 @@
 [Unit]
 Description=Start X and Chromium in Kiosk Mode
-After=network.target
+After=frame.service
 
 [Service]
 Environment="DISPLAY=:0"
 ExecStart=/usr/bin/startx
 Restart=always
+RestartSec=10s
 StandardOutput=syslog
 StandardError=syslog
 User=USER

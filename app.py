@@ -6,6 +6,7 @@ import time
 from threading import Event
 import asyncio
 import logging
+import sdnotify  # Add this import
 
 from flask import Flask, render_template, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
@@ -36,6 +37,7 @@ slideshow_folder = os.getenv(
     "SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures")
 )
 slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
+slideshow_clock_ratio = os.getenv("SLIDESHOW_CLOCK_RATIO", 0)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -97,9 +99,11 @@ def index():
 
     return render_template(
         "index.html",
+        name=name,
         images=images,
         art_images=art_images,
         transition_seconds=slideshow_transition_seconds,
+        slideshow_clock_ratio=slideshow_clock_ratio,
     )
 
 
@@ -159,6 +163,10 @@ if __name__ == "__main__":
     if not myRoonApi.connect(notify_clients=notify_clients):
         logger.error("Unable to connect to Roon")
         exit()
+
+    # Notify systemd that the service is ready
+    n = sdnotify.SystemdNotifier()
+    n.notify("READY=1")
 
     # Start the Flask web server
     socketio.run(

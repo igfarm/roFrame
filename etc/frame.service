@@ -4,11 +4,11 @@ After=network.target
 
 [Service]
 Environment="DISPLAY=:0"
-Environment="PYTHONUNBUFFERED=1"
-Type=simple
+Type=notify
 WorkingDirectory=PATH
-ExecStart=PATH/venv/bin/python PATH/app.py
+ExecStart=PATH/venv/bin/python -u PATH/app.py
 Restart=always
+RestartSec=10s
 User=USER
 
 [Install]
