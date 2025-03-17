@@ -22,6 +22,7 @@ class MyRoonApi:
         self.logger = logging.getLogger(__name__)
         self.image_size = os.environ.get("IMAGE_SIZE", 600)
         self.connected = False
+        self.last_state = "unknown"
 
         if not bool(os.environ.get("NAME", "")):
             raise Exception(
@@ -135,6 +136,7 @@ class MyRoonApi:
             print("- " + zone_info["display_name"])
             if zone_info["display_name"] == self.zone_name:
                 zone = roonapi.zones[zone_id]
+                self.last_state = zone["state"]
                 # pprint(zone )
                 data = {
                     "state": zone["state"],
@@ -151,6 +153,7 @@ class MyRoonApi:
 
     def __get_album_data(self, now_playing) -> Dict[str, Any]:
         return {
+            "state": self.last_state,
             "image_size": self.image_size,
             "artist": now_playing["three_line"]["line2"],
             "title": now_playing["three_line"]["line3"],
