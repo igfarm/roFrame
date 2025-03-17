@@ -1,6 +1,7 @@
 [Unit]
 Description=roFrame
-After=network.target
+After=network-online.target
+Wants=network-online.target
 
 [Service]
 Environment="DISPLAY=:0"
