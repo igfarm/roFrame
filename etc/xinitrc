@@ -7,6 +7,10 @@ xset -dpms      # Disable power management
 xset s off      # Disable screen saver
 xset s noblank  # Prevent screen blanking
 
+# Put up a message
+xmessage -center -buttons "" "Waiting for frame to connect to Roon..." &
+XMESSAGE_PID=$!
+
 # Wait for the frame server to be available
 URL="http://127.0.0.1:5006"
 echo "Waiting for $URL to be available..."
@@ -15,6 +19,7 @@ while true; do
     
     if [ "$STATUS_CODE" -eq 200 ]; then
         echo "$URL is up!"
+        kill $XMESSAGE_PID 
         break
     fi
 

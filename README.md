@@ -77,16 +77,15 @@ The application requires the following environment variables to be set.
 Install required packages:
 
     sudo apt update
-    sudo apt install -y xserver-xorg xinit chromium-browser unclutter
+    sudo apt install -y xserver-xorg xinit chromium-browser unclutter x11-utils
 
 Create an `.xinit` file that `startx` will execute once it starts running:
 
+    cd ~/work/roFrame
     cp etc/xinitrc  ~/.xinitrc
     chmod +x ~/.xinitrc
 
 Install the application's service:
-
-    cd ~/work/roFrame
 
     sudo cp etc/frame.service /lib/systemd/system/
     sudo sed -i "s|PATH|$(pwd)|g" /lib/systemd/system/frame.service
@@ -98,6 +97,10 @@ Install the kiosk service:
     sudo cp etc/kiosk.service /lib/systemd/system/
     sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/kiosk.service
     sudo systemctl enable kiosk.service
+
+If updating from a previous version:
+
+    sudo systemctl daemon-reload
 
 Allow `startx` to be started by a service:
 
