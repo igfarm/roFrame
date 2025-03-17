@@ -38,15 +38,6 @@ class MyRoonApi:
             "website": "https://github.com/igfarm/roFrame",
         }
 
-        if os.environ.get("ROON_USE_OLD_APPINFO", "yes") == "yes":
-            self.appinfo = {
-                "extension_id": "roFrame",
-                "display_name": "Frame for Roon",
-                "display_version": "1.0.0",
-                "publisher": "igfarm",
-                "email": "jaime@igfarm.com",
-            }
-
     def check_auth(self) -> bool:
         if not os.path.exists(self.core_id_fname) or not os.path.exists(
             self.token_fname
