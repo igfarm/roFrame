@@ -64,6 +64,15 @@ def display(turn_on):
     logger.info(f"display: {state}")
 
 
+def is_screen_on(current_hour, on_hour, off_hour):
+    if on_hour == off_hour:
+        return False  # Device should be off if on and off hours are the same
+    if on_hour < off_hour:
+        return on_hour <= current_hour < off_hour  # Normal range
+    else:
+        return not (off_hour <= current_hour < on_hour)  # Overnight case
+
+
 def background_thread():
     """
     A background thread that emits a message every 10 minutes.
@@ -72,15 +81,16 @@ def background_thread():
         myRoonApi = getRoonApi()
         album = myRoonApi.get_zone_data()
         state = album.get("state")
-        if state == "playing":
+        current_hour = datetime.now().astimezone(my_tz).hour
+
+        # Turn off screen during certain hours
+        if state in ["playing", "loading"] or is_screen_on(
+            current_hour, display_on_hour, display_off_hour
+        ):
             display(True)
         else:
-            # add code to turn off screen after 12AM and turn it back on at 6AM
-            current_hour = datetime.now().astimezone(my_tz).hour
-            if display_off_hour <= current_hour or current_hour < display_on_hour:
-                display(False)
-            else:
-                display(True)
+            display(False)
+
         time.sleep(600)
 
 
@@ -147,7 +157,7 @@ def trigger_album_update():
     album = myRoonApi.get_zone_data()
     asyncio.run(notify_clients(album))  # Use asyncio.run to await the coroutine
 
-    if album["state"] == "playing":
+    if album["state"] in ["playing", "loading"]:
         display(True)
 
 
@@ -155,7 +165,7 @@ async def notify_clients(message):
     logger.info("notify_clients")
     logger.info(message)
     socketio.emit("album_update", message)
-    if message.get("state") == "playing":
+    if message.get("state") in ["playing", "loading"]:
         display(True)
 
 
