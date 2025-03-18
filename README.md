@@ -7,7 +7,8 @@ A simple digital frame that shows "Now Playing" information from a Roon audio zo
 ## Features
 
 - Connection: Connects to Roon over Wi-Fi as an extension, so only a power cable is needed, and it can be placed where you like to see it.
-- Slideshow: Displays images from a local pictures directory when no music is playing.
+- Slideshow: Displays images from a local pictures directory when no music is playing in Roon.
+- Analog Clock: Option to enable clock display to intermingle or replace slideshow.
 - Roon Metadata: Shows currently playing track information (artist, track title, album art, etc.) for a chosen Roon zone.
 - Kiosk Mode: Automatically launches in a full-screen browser on Raspberry Pi OS (with optional display power management).
 - Lightweight: Uses a simple Python app and minimal services to run efficiently on a Raspberry Pi.
@@ -114,6 +115,31 @@ The application requires the following environment variables to be set.
 | `SLIDESHOW_TRANSITION_SECONDS` | Time per slide transition (seconds)        | No       | Any number (e.g., `15`)                                                                       | `0`                |
 | `SLIDESHOW_CLOCK_RATIO`        | How often to show the clock                | No       | `0-100` (`0` is never, `100` is always)                                                       | `0`                |
 | `TZ`                           | Timezone setting                           | No       | Valid timezone, see [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) | `America/New_York` |
+
+### Sample Configuations
+
+Display is only on when Roon is playing
+
+    DISPLAY_ON_HOUR=0
+    DISPLAY_OFF_HOUR=0
+
+Display is on from 9AM to 10PM and shows clock when Roon is not playing
+
+    DISPLAY_ON_HOUR=9
+    DISPLAY_OFF_HOUR=22
+    SLIDESHOW_CLOCK_RATIO=100
+
+Display is on from 1AM to 1PM and shows slide show (or art show) when Roon is not playing.
+
+    DISPLAY_ON_HOUR=1
+    DISPLAY_OFF_HOUR=13
+    SLIDESHOW_CLOCK_RATIO=0
+
+Display is on from 11PM to 6AM and alternates between slide slide show (or art show) and clock 50% of the time when Roon is not playing.
+
+    DISPLAY_ON_HOUR=22
+    DISPLAY_OFF_HOUR=6
+    SLIDESHOW_CLOCK_RATIO=50
 
 ## Debugging
 
