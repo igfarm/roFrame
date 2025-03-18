@@ -20,7 +20,7 @@ class MyRoonApi:
         self.clients = set()
         self.notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
         self.logger = logging.getLogger(__name__)
-        self.image_size = os.environ.get("IMAGE_SIZE", 600)
+        self.image_size = int(os.environ.get("IMAGE_SIZE", 600))
         self.connected = False
         self.last_state = "unknown"
 

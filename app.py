@@ -28,7 +28,6 @@ thread_stop_event = Event()
 
 name = os.getenv("NAME", "roFrame")
 port = int(os.getenv("PORT", 5006))
-image_size = int(os.getenv("IMAGE_SIZE", 600))
 display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
 display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
 display_control = os.getenv("DISPLAY_CONTROL", "off")
@@ -37,7 +36,10 @@ slideshow_folder = os.getenv(
     "SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures")
 )
 slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
-slideshow_clock_ratio = os.getenv("SLIDESHOW_CLOCK_RATIO", 0)
+slideshow_clock_ratio = int(os.getenv("SLIDESHOW_CLOCK_RATIO", 0)) / 100
+
+clock_size = int(os.getenv("CLOCK_SIZE", 550))
+clock_offset = int(os.getenv("CLOCK_OFFSET", 10))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -104,6 +106,8 @@ def index():
         art_images=art_images,
         transition_seconds=slideshow_transition_seconds,
         slideshow_clock_ratio=slideshow_clock_ratio,
+        clock_size=clock_size,
+        clock_offset=clock_offset,
     )
 
 

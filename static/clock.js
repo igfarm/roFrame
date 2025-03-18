@@ -160,22 +160,4 @@ class AnalogClock {
       this.drawHands(hours, minutes, seconds);
     }
   }
-  
-window.onload = function () {
-    const clockContainer = document.getElementById("clockContainer");
-    const canvas = document.createElement("canvas");
 
-    let margin = 20
-    canvas.id = "clockCanvas";
-    canvas.width = 600 - margin * 2;
-    canvas.height = 600 - margin * 2;
-    canvas.style.display = "block";
-    canvas.style.margin = margin + "px auto";
-    canvas.style.background = "#333";
-    canvas.style.border = "2px solid #fff";
-    canvas.style.borderRadius = "50%";
-
-    clockContainer.appendChild(canvas);
-    new AnalogClock("clockCanvas");
-    console.log('AnalogClock')
-};

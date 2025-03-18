@@ -23,13 +23,9 @@
         }
 
         body {
-            background-color: rgba(0, 0, 0);
+            background-color: black;
             color: white;
             font-family: 'Butler1', sans-serif;
-        }
-        .container {
-            margin: 0;
-            padding: 0;
         }
         .slide {
             position: absolute;
@@ -78,10 +74,11 @@
                 document.getElementById(id).classList.remove('d-none');
             }
 
+        // Trigger initial album update
         setTimeout(function() {
                 console.log('Triggering album update');
-                socket.emit('trigger_album_update'); // Trigger an album update
-            }, 2000); // 2 seconds delay
+                socket.emit('trigger_album_update'); 
+            }, 2000);
 
         socket.on('album_update', function(data) {
             console.log('Album update received:', data)
@@ -169,8 +166,8 @@
     </script>
 </head>
 <body>
-    <div class="container-fluid p-0">
-        <div id="album"  class="row d-none mytab">
+    <div class="container-fluid gx-0 gy-0 p-0">
+        <div id="album"  class="row d-none mytab gx-0 gy-0 p-0">
           <div class="col">
             <div class="row flex-nowrap">
                 <div id="album_cover" class="col">
@@ -184,12 +181,11 @@
             </div>  
             </div>
         </div>
-        <div id="clock" class="row d-none mytab">   
+        <div id="clock" class="row d-none mytab gx-0 gy-0 p-0">   
             <div id="clockContainer" class="col">
-                <div id="clock"></div>
-                </div>
+            </div>
         </div>
-        <div id="slideshow" class="row d-none mytab">
+        <div id="slideshow" class="row d-none mytab gx-0 gy-0 p-0">
             <div class="col">
                 {% for image in images %}
                 <img class="slide" src="{{ url_for('slideshow_pic', filename=image) }}" alt="Slideshow Image">
@@ -204,11 +200,36 @@
     <script src="/static/slideshow.js"></script>
     <script src="/static/clock.js"></script>
     <script>
-        slideshow.init({
-            showRow: show_row,
-            slideshowClockRatio: {{ slideshow_clock_ratio }},
-            transitionSeconds: {{ transition_seconds }}
-        });
-    </script>
+        window.onload = function () {
+
+            slideshow.init({
+                showRow: show_row,
+                slideshowClockRatio: {{ slideshow_clock_ratio }},
+                transitionSeconds: {{ transition_seconds }}
+            });
+
+            // Start the clock
+            if ({{ slideshow_clock_ratio }} > 0) {
+                const clockContainer = document.getElementById("clockContainer");
+                const canvas = document.createElement("canvas");
+
+                clockContainer.style.setProperty("padding-top", {{ clock_offset }} + "px");
+                canvas.id = "clockCanvas";
+                canvas.width = {{ clock_size }};
+
+                canvas.height = canvas.width;
+                canvas.style.display = "block";
+                canvas.style.margin = "0px auto";
+                canvas.style.background = "#333";
+                canvas.style.border = "2px solid #fff";
+                canvas.style.borderRadius = "50%";
+
+                clockContainer.appendChild(canvas);
+                new AnalogClock("clockCanvas");
+                console.log('AnalogClock')
+            }
+        };
+
+</script>
 </body>
 </html>
