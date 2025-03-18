@@ -38,8 +38,8 @@ slideshow_folder = os.getenv(
 slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
 slideshow_clock_ratio = int(os.getenv("SLIDESHOW_CLOCK_RATIO", 0)) / 100
 
-clock_size = int(os.getenv("CLOCK_SIZE", 550))
-clock_offset = int(os.getenv("CLOCK_OFFSET", 10))
+clock_size = int(os.getenv("CLOCK_SIZE", 0))
+clock_offset = int(os.getenv("CLOCK_OFFSET", 0))
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
