@@ -28,4 +28,4 @@ while true; do
 done
 
 # Start Chromium in kiosk mode
-exec chromium-browser --enable-logging=stderr --v1 --noerrdialogs --disable-infobars --hide-scrollbars --kiosk "$URL"
+exec chromium-browser --window-size=1024,600 --enable-logging=stderr --v1 --noerrdialogs --disable-infobars --hide-scrollbars --kiosk "$URL"
