@@ -12,6 +12,7 @@ A simple digital frame that shows "Now Playing" information from a Roon audio zo
 - Roon Metadata: Shows currently playing track information (artist, track title, album art, etc.) for a chosen Roon zone.
 - Kiosk Mode: Automatically launches in a full-screen browser on Raspberry Pi OS (with optional display power management).
 - Lightweight: Uses a simple Python app and minimal services to run efficiently on a Raspberry Pi.
+- Orientation: Landscape mode, portait mode optional.
 
 ## Setup
 
@@ -99,8 +100,8 @@ The application requires the following environment variables to be set.
 
 | Variable Name                  | Description                                | Required | Possible Values                                                                               | Default            |
 | ------------------------------ | ------------------------------------------ | -------- | --------------------------------------------------------------------------------------------- | ------------------ |
-| `CLOCK_SIZE`                   | Diameter of clock in pixels                | No       | `20-600` (e.g, `200`)                                                                         | `540`              |
-| `CLOCK_OFFSET`                 | Clock offset pixels from top of the screen | No       | `10-500` (e.g, `12`)                                                                          | `10`               |
+| `CLOCK_SIZE`                   | Diameter of clock in pixels                | No       | `0` means autosize.                                                                           | `0`                |
+| `CLOCK_OFFSET`                 | Clock offset pixels from top of the screen | No       | `0` means autosize.                                                                           | `0`                |
 | `DISPLAY_CONTROL`              | Enables or disables display control        | No       | `on`, `off`                                                                                   | `on`               |
 | `DISPLAY_OFF_HOUR`             | Hour to turn off the display               | No       | `0-23` (e.g., `22`)                                                                           | `22`               |
 | `DISPLAY_ON_HOUR`              | Hour to turn on the display                | No       | `0-23` (e.g., `10`)                                                                           | `10`               |
@@ -140,6 +141,12 @@ Display is on from 11PM to 6AM and alternates between slide slide show (or art s
     DISPLAY_ON_HOUR=22
     DISPLAY_OFF_HOUR=6
     SLIDESHOW_CLOCK_RATIO=50
+
+### Portrait Mode
+
+The systems comes out of the box in Landscape mode. You can also configure it to run in Portrait mode by adding the following line at the top of the `~/.xinitrc` file.
+
+    xrandr --output HDMI-1 --rotate right
 
 ## Debugging
 

@@ -41,6 +41,8 @@ slideshow_clock_ratio = int(os.getenv("SLIDESHOW_CLOCK_RATIO", 0)) / 100
 clock_size = int(os.getenv("CLOCK_SIZE", 0))
 clock_offset = int(os.getenv("CLOCK_OFFSET", 0))
 
+index_file = os.getenv("INDEX_FILE", "index.html")
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -110,7 +112,7 @@ def index():
             art_images = [generate_mondrian() for _ in range(10)]
 
     return render_template(
-        "index.html",
+        index_file,
         name=name,
         images=images,
         art_images=art_images,
