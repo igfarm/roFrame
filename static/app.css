@@ -67,7 +67,9 @@
   }
   .full-area img {
     object-fit: contain;
-    position: relative;
+    position: absolute;
+    opacity: 0;
+    transition: opacity 1s ease-in-out;
 
     display: block; /* removes inline gap */
   }
@@ -84,6 +86,10 @@
     margin-bottom: 0.5em;
     filter: brightness(80%);
     line-height: 1.2em;
+  }
+
+  .slide.active {
+    opacity: 1;
   }
 
   /* =======================
