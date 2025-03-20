@@ -42,7 +42,7 @@ Make a copy of the configuration and update `NAME` to have a unique name for thi
 
 Start the discovery program, and go to Roon extensions to approve it:
 
-    python discovery.py
+    ./venv/bin/python discovery.py
 
 This will list all available zones. Edit `.env` file to add update `ROON_ZONE` to one of those values if you have not done so already.
 
@@ -50,7 +50,7 @@ Add a few images to the `pictures` folder. In my case, the panel I am using has 
 
 Test that things are working as expected by starting the frame application:
 
-    python app.py
+    ./venv/bin/python app.py
 
 and open a browser and open the URL of the machine the app is running on as indicated when running the app.
 
@@ -147,6 +147,13 @@ Display is on from 11PM to 6AM and alternates between slide slide show (or art s
 The systems comes out of the box in Landscape mode. You can also configure it to run in Portrait mode by adding the following line at the top of the `~/.xinitrc` file.
 
     xrandr --output HDMI-1 --rotate right
+
+### Getting Public Domain Art
+
+You can get free art to display in your frame, complements of the [Art Institute of Chicago](https://api.artic.edu/docs/#introduction) API, by using the following command:
+show in your frame:
+
+    ./venv/bin/python etc/get_art.py landscape
 
 ## Debugging
 
