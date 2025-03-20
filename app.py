@@ -47,6 +47,8 @@ index_file = os.getenv("INDEX_FILE", "index.html")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+display_state = False
+
 
 def getRoonApi():
     global myRoonApi
@@ -59,6 +61,9 @@ def getRoonApi():
 
 
 def display(turn_on):
+    global display_state
+    display_state = turn_on
+
     """Function to control the display"""
     state = "on" if turn_on else "off"
     if display_control == "on":
@@ -154,9 +159,14 @@ def handle_disconnect():
 
 @socketio.on("trigger_album_update")
 def trigger_album_update():
+    global display_state
+
     logger.info("trigger_album_update")
     myRoonApi = getRoonApi()
     album = myRoonApi.get_zone_data()
+
+    album["display_state"] = display_state
+
     asyncio.run(notify_clients(album))  # Use asyncio.run to await the coroutine
 
     if album["state"] in ["playing", "loading"]:
