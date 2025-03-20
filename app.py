@@ -27,7 +27,7 @@ thread = None
 thread_stop_event = Event()
 
 name = os.getenv("NAME", "roFrame")
-port = int(os.getenv("PORT", 5006))
+
 display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
 display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
 display_control = os.getenv("DISPLAY_CONTROL", "off")
@@ -196,5 +196,9 @@ if __name__ == "__main__":
 
     # Start the Flask web server
     socketio.run(
-        app, debug=False, port=port, host="0.0.0.0", allow_unsafe_werkzeug=True
+        app,
+        debug=False,
+        port=int(os.getenv("PORT", 5006)),
+        host=os.getenv("HOST", "127.0.0.1"),
+        allow_unsafe_werkzeug=True,
     )
