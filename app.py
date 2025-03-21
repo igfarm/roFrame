@@ -8,7 +8,7 @@ import asyncio
 import logging
 import sdnotify  # Add this import
 
-from flask import Flask, render_template, jsonify, send_from_directory
+from flask import redirect, url_for, request, Flask, render_template, jsonify, send_from_directory
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 from myroonapi import MyRoonApi
@@ -140,7 +140,73 @@ def static_files(filename):
     """Serve static files from the static directory."""
     return send_from_directory(os.path.join(app.root_path, "static"), filename)
 
+@app.route("/setup", methods=["GET", "POST"])
+def setup():
+    if request.method == "POST":
+        # Load existing .env variables into a dictionary
+        existing_env_vars = {}
+        if os.path.exists(".env"):
+            with open(".env", "r") as env_file:
+                for line in env_file:
+                    if "=" in line:
+                        key, value = line.strip().split("=", 1)
+                        existing_env_vars[key] = value
 
+        # Get form data and update the dictionary
+        form_env_vars = {
+            "ROON_ZONE": request.form.get("ROON_ZONE", os.getenv("ROON_ZONE", "")),
+            "DISPLAY_ON_HOUR": request.form.get("DISPLAY_ON_HOUR", "9"),
+            "DISPLAY_OFF_HOUR": request.form.get("DISPLAY_OFF_HOUR", "23"),
+            "DISPLAY_CONTROL": request.form.get("DISPLAY_CONTROL", "off"),
+            "SLIDESHOW": request.form.get("SLIDESHOW", "on"),
+            "SLIDESHOW_TRANSITION_SECONDS": request.form.get("SLIDESHOW_TRANSITION_SECONDS", "15"),
+            "SLIDESHOW_CLOCK_RATIO": request.form.get("SLIDESHOW_CLOCK_RATIO", "0"),
+            "CLOCK_SIZE": request.form.get("CLOCK_SIZE", "0"),
+            "CLOCK_OFFSET": request.form.get("CLOCK_OFFSET", "0"),
+        }
+
+        # Update existing_env_vars with form_env_vars
+        existing_env_vars.update(form_env_vars)
+
+        # Sort the dictionary by keys
+        sorted_env_vars = dict(sorted(existing_env_vars.items()))
+
+        # Write the updated dictionary back to the .env file
+        logger.info("saving setup data")
+        with open(".env", "w") as env_file:
+            for key, value in sorted_env_vars.items():
+                env_file.write(f"{key}={value}\n")
+
+        # Restart the server to apply the new settings
+        if os.uname().machine.startswith("aarch64"):
+            logger.info("restarting...")
+            subprocess.Popen(["/bin/bash", "./etc/restart.sh", "5"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+        return redirect(url_for("setup"))
+
+    # Load current .env variables
+    current_env = {
+        "NAME": os.getenv("NAME", "roFrame"),
+        "DISPLAY_ON_HOUR": os.getenv("DISPLAY_ON_HOUR", "9"),
+        "DISPLAY_OFF_HOUR": os.getenv("DISPLAY_OFF_HOUR", "23"),
+        "DISPLAY_CONTROL": os.getenv("DISPLAY_CONTROL", "off"),
+        "SLIDESHOW": os.getenv("SLIDESHOW", "on"),
+        "SLIDESHOW_FOLDER": os.getenv("SLIDESHOW_FOLDER", "./pictures"),
+        "SLIDESHOW_TRANSITION_SECONDS": os.getenv("SLIDESHOW_TRANSITION_SECONDS", "15"),
+        "SLIDESHOW_CLOCK_RATIO": os.getenv("SLIDESHOW_CLOCK_RATIO", "0"),
+        "CLOCK_SIZE": os.getenv("CLOCK_SIZE", "0"),
+        "CLOCK_OFFSET": os.getenv("CLOCK_OFFSET", "0"),
+        "PORT": os.getenv("PORT", "5006"),
+        "HOST": os.getenv("HOST", "127.0.0.1"),
+    }
+
+    # Pass along the current selected zone and a list of available zones
+    available_zones = myRoonApi.get_zone_list()
+    current_env["ROON_ZONE"] = os.getenv("ROON_ZONE", "")
+
+    current_env["AVAILABLE_ZONES"] = available_zones
+
+    return render_template("setup.html", env=current_env)
 @socketio.on("connect")
 def handle_connect():
     logger.info("Socket client connected")

@@ -121,6 +121,14 @@ class MyRoonApi:
     def is_connected(self) -> bool:
         return self.connected
 
+    def get_zone_list(self) -> list:
+        list = []
+        roonapi = self.__get_roonapi()
+        for zone_id, zone_info in roonapi.zones.items():
+            list.append(zone_info["display_name"])
+            print("- " + zone_info["display_name"])
+        return list
+
     def get_zone_data(self, show_zones=False) -> Optional[str]:
         roonapi = self.__get_roonapi()
         for zone_id, zone_info in roonapi.zones.items():

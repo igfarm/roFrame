@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup</title>
+    <link href="/static/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Setup</h1>
+        <form method="POST" action="/setup">
+            <div class="card mb-4">
+                <div class="card-header">
+                  Device
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="NAME" class="form-label">Name</label>
+                        <input type="text" disabled class="form-control" id="NAME" name="NAME" value="{{ env.NAME }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="ROON_ZONE" class="form-label">Roon Zone</label>
+                        <select class="form-select" id="ROON_ZONE" name="ROON_ZONE">
+                            {% for zone in env.AVAILABLE_ZONES %}
+                            <option value="{{ zone }}" {% if env.ROON_ZONE == zone %}selected{% endif %}>{{ zone }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                  Display
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="DISPLAY_CONTROL" class="form-label">Control</label>
+                        <select class="form-select" id="DISPLAY_CONTROL" name="DISPLAY_CONTROL">
+                            <option value="on" {% if env.DISPLAY_CONTROL == "on" %}selected{% endif %}>On</option>
+                            <option value="off" {% if env.DISPLAY_CONTROL == "off" %}selected{% endif %}>Off</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="DISPLAY_ON_HOUR" class="form-label">On Hour</label>
+                        <input type="number" class="form-control" id="DISPLAY_ON_HOUR" name="DISPLAY_ON_HOUR" value="{{ env.DISPLAY_ON_HOUR }}" min="0" max="23">
+                    </div>
+                    <div class="mb-3">
+                        <label for="DISPLAY_OFF_HOUR" class="form-label">Off Hour</label>
+                        <input type="number" class="form-control" id="DISPLAY_OFF_HOUR" name="DISPLAY_OFF_HOUR" value="{{ env.DISPLAY_OFF_HOUR }}" min="0" max="23">
+                    </div>
+                </div>
+            </div>  
+            <div class="card mb-4">
+                <div class="card-header">
+                  Slideshow
+                </div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label for="SLIDESHOW" class="form-label">Enable Slideshow</label>
+                        <select class="form-select" id="SLIDESHOW" name="SLIDESHOW">
+                            <option value="on" {% if env.SLIDESHOW == "on" %}selected{% endif %}>On</option>
+                            <option value="off" {% if env.SLIDESHOW == "off" %}selected{% endif %}>Off</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="SLIDESHOW_FOLDER" class="form-label">Folder</label>
+                        <input type="text" disabled class="form-control" id="SLIDESHOW_FOLDER" name="SLIDESHOW_FOLDER" value="{{ env.SLIDESHOW_FOLDER }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="SLIDESHOW_TRANSITION_SECONDS" class="form-label">Transition Seconds</label>
+                        <input type="number" class="form-control" id="SLIDESHOW_TRANSITION_SECONDS" name="SLIDESHOW_TRANSITION_SECONDS" value="{{ env.SLIDESHOW_TRANSITION_SECONDS }}">
+                    </div>
+                </div>  
+            </div>
+            <div class="card mb-4">
+                <div class="card-header">
+                  Clock
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="SLIDESHOW_CLOCK_RATIO" class="form-label">Show Clock %</label>
+                        <input type="number" class="form-control" id="SLIDESHOW_CLOCK_RATIO" name="SLIDESHOW_CLOCK_RATIO" value="{{ env.SLIDESHOW_CLOCK_RATIO }}" min="0" max="100">
+                    </div>
+                    <div class="mb-3">
+                        <label for="CLOCK_SIZE" class="form-label">Clock Size</label>
+                        <input type="number" class="form-control" id="CLOCK_SIZE" name="CLOCK_SIZE" value="{{ env.CLOCK_SIZE }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="CLOCK_OFFSET" class="form-label">Clock Offset</label>
+                        <input type="number" class="form-control" id="CLOCK_OFFSET" name="CLOCK_OFFSET" value="{{ env.CLOCK_OFFSET }}">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mb-4">
+                <div class="card-header">
+                  Network
+                </div>
+                <div class="card-body">
+
+                    <div class="mb-3">
+                        <label for="HOST" class="form-label">Host</label>
+                        <input type="text" disabled class="form-control" id="HOST" name="HOST" value="{{ env.HOST }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="PORT" class="form-label">Port</label>
+                        <input type="number" disabled class="form-control" id="PORT" name="PORT" value="{{ env.PORT }}">
+                    </div>         
+
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">Save</button>
+            <script>
+
+                document.querySelector('form').addEventListener('submit', function(event) {
+                    document.querySelector('button[type="submit"]').style.display = 'none';
+                    const spinner = document.createElement('div');
+                    spinner.className = 'spinner-border text-primary';
+                    spinner.role = 'status';
+                    spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
+                    this.appendChild(spinner); // Add spinner to the form
+                    event.preventDefault(); // Prevent the default form submission
+                    const formData = new FormData(this);
+                    fetch(this.action, {
+                        method: this.method,
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            console.log('Form submitted successfully');
+                        } else {
+                            console.error('Form submission failed');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                    });
+                    setTimeout(() => {
+                        window.location.reload(); // Reload the page after 10 seconds
+                    }, 15000);
+                });
+            </script>
+        </form>
+    </div>
+    <script src="/static/bootstrap.bundle.min.js"></script>
+</body>
+</html>
