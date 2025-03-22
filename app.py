@@ -152,17 +152,43 @@ def setup():
                         key, value = line.strip().split("=", 1)
                         existing_env_vars[key] = value
 
-        # Get form data and update the dictionary
+        # Get form data and validate inputs
+        try:
+            display_on_hour = int(request.form.get("DISPLAY_ON_HOUR", "9"))
+            display_off_hour = int(request.form.get("DISPLAY_OFF_HOUR", "23"))
+            if not (0 <= display_on_hour <= 23 and 0 <= display_off_hour <= 23):
+                raise ValueError("Display hours must be between 0 and 23.")
+
+            slideshow_transition_seconds = int(request.form.get("SLIDESHOW_TRANSITION_SECONDS", "15"))
+            if slideshow_transition_seconds <= 0:
+                raise ValueError("Slideshow transition seconds must be a positive integer.")
+
+            slideshow_clock_ratio = int(request.form.get("SLIDESHOW_CLOCK_RATIO", "0"))
+            if not (0 <= slideshow_clock_ratio <= 100):
+                raise ValueError("Slideshow clock ratio must be between 0 and 100.")
+
+            clock_size = int(request.form.get("CLOCK_SIZE", "0"))
+            if clock_size < 0:
+                raise ValueError("Clock size must be a non-negative integer.")
+
+            clock_offset = int(request.form.get("CLOCK_OFFSET", "0"))
+            if clock_offset < 0:
+                raise ValueError("Clock offset must be a non-negative integer.")
+        except ValueError as e:
+            logger.error(f"Invalid input: {e}")
+            return jsonify({"error": str(e)}), 400
+
+        # Prepare form data for updating the .env file
         form_env_vars = {
             "ROON_ZONE": request.form.get("ROON_ZONE", os.getenv("ROON_ZONE", "")),
-            "DISPLAY_ON_HOUR": request.form.get("DISPLAY_ON_HOUR", "9"),
-            "DISPLAY_OFF_HOUR": request.form.get("DISPLAY_OFF_HOUR", "23"),
+            "DISPLAY_ON_HOUR": str(display_on_hour),
+            "DISPLAY_OFF_HOUR": str(display_off_hour),
             "DISPLAY_CONTROL": request.form.get("DISPLAY_CONTROL", "off"),
             "SLIDESHOW": request.form.get("SLIDESHOW", "on"),
-            "SLIDESHOW_TRANSITION_SECONDS": request.form.get("SLIDESHOW_TRANSITION_SECONDS", "15"),
-            "SLIDESHOW_CLOCK_RATIO": request.form.get("SLIDESHOW_CLOCK_RATIO", "0"),
-            "CLOCK_SIZE": request.form.get("CLOCK_SIZE", "0"),
-            "CLOCK_OFFSET": request.form.get("CLOCK_OFFSET", "0"),
+            "SLIDESHOW_TRANSITION_SECONDS": str(slideshow_transition_seconds),
+            "SLIDESHOW_CLOCK_RATIO": str(slideshow_clock_ratio),
+            "CLOCK_SIZE": str(clock_size),
+            "CLOCK_OFFSET": str(clock_offset),
         }
 
         # Update existing_env_vars with form_env_vars
