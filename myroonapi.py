@@ -128,7 +128,6 @@ class MyRoonApi:
     def get_zone_data(self, show_zones=False) -> Optional[str]:
         roonapi = self.__get_roonapi()
         for zone_id, zone_info in roonapi.zones.items():
-            print("- " + zone_info["display_name"])
             if zone_info["display_name"] == self.zone_name:
                 zone = roonapi.zones[zone_id]
                 self.last_state = zone["state"]
