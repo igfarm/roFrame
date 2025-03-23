@@ -15,14 +15,15 @@ class MyRoonApi:
 
     def __init__(self) -> None:
         self.zone_name = os.environ.get("ROON_ZONE", None)
-        self.core_id_fname = os.environ.get("ROON_CORE_ID_FNAME", "roon_core_id.txt")
-        self.token_fname = os.environ.get("ROON_TOKEN_FNAME", "roon_token.txt")
+        self.core_id = os.environ.get("ROON_CORE_ID", "")
+        self.token = os.environ.get("ROON_API_TOKEN", "")
         self.clients = set()
         self.notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None
         self.logger = logging.getLogger(__name__)
         self.image_size = int(os.environ.get("IMAGE_SIZE", 600))
         self.connected = False
         self.last_state = "unknown"
+        self.roonapi = None
 
         if not bool(os.environ.get("NAME", "")):
             raise Exception(
@@ -39,12 +40,8 @@ class MyRoonApi:
         }
 
     def check_auth(self) -> bool:
-        if not os.path.exists(self.core_id_fname) or not os.path.exists(
-            self.token_fname
-        ):
-            self.logger.error("auth files not found")
-            return False
-        return True
+        token = os.getenv("ROON_API_TOKEN")
+        return bool(token and token.strip())
 
     def register(self) -> list:
         discover = RoonDiscovery(None)
@@ -64,14 +61,15 @@ class MyRoonApi:
             self.logger.warning("Please set ROON_ZONE to one of the values above")
 
         available_zones = self.get_zone_list()
-    
+
         self.logger.info("Got authorisation")
         self.logger.info(self.roonapi.host)
         self.logger.info(self.roonapi.core_name)
         self.logger.info(self.roonapi.core_id)
 
         # This is what we need to reconnect
-        self.__save_credentials(self.roonapi.core_id, self.roonapi.token)
+        os.environ["ROON_CORE_ID"] = self.roonapi.core_id
+        os.environ["ROON_API_TOKEN"] = self.roonapi.token
         self.roonapi.stop()
 
         return available_zones
@@ -81,10 +79,8 @@ class MyRoonApi:
     ) -> bool:
         self.roonapi = None
 
-        if not os.path.exists(self.core_id_fname) or not os.path.exists(
-            self.token_fname
-        ):
-            self.logger.error("Please authorise first using discovery.py")
+        if not self.check_auth():
+            self.logger.error("ROON_API_TOKEN not found or blank")
             return False
 
         if not bool(self.zone_name):
@@ -92,13 +88,7 @@ class MyRoonApi:
             return False
 
         try:
-            with open(self.core_id_fname) as f:
-                core_id = f.read()
-            with open(self.token_fname) as f:
-                token = f.read()
-
-            self.logger.info(core_id)
-            discover = RoonDiscovery(core_id)
+            discover = RoonDiscovery(self.core_id)
             server = discover.first()
             discover.stop()
 
@@ -107,7 +97,9 @@ class MyRoonApi:
                 return False
 
             self.logger.info(server)
-            self.roonapi = RoonApi(self.appinfo, token, server[0], server[1], False)
+            self.roonapi = RoonApi(
+                self.appinfo, self.token, server[0], server[1], False
+            )
             self.notify_clients = notify_clients
 
             album = self.get_zone_data()
@@ -165,12 +157,6 @@ class MyRoonApi:
                 now_playing["image_key"], width=self.image_size, height=self.image_size
             ),
         }
-
-    def __save_credentials(self, core_id: str, token: str) -> None:
-        with open(self.core_id_fname, "w") as f:
-            f.write(core_id)
-        with open(self.token_fname, "w") as f:
-            f.write(token)
 
     def __state_callback(self, event: str, changed_items: Any) -> None:
         if event == "zones_changed":

@@ -56,6 +56,8 @@ def load_config():
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 5006))
 
+    print(os.environ)
+
 
 load_config()
 
@@ -74,9 +76,9 @@ if name:
 def getRoonApi():
     global myRoonApi
 
-    # if not myRoonApi.is_connected():
-    #    logger.info("Connecting to Roon API")
-    #    myRoonApi.connect(notify_clients=notify_clients)
+    if not myRoonApi.is_connected():
+        logger.info("Connecting to Roon API")
+        myRoonApi.connect(notify_clients=notify_clients)
 
     return myRoonApi
 
@@ -131,6 +133,9 @@ def resave_env():
     with open(".env", "r") as env_file:
         for line in env_file:
             if "=" in line:
+                # if key starts with ROON and ends with FNAME, skip it
+                if line.strip().startswith("ROON") and line.strip().endswith("FNAME"):
+                    continue
                 key, value = line.strip().split("=", 1)
                 existing_env_vars[key] = os.getenv(key, value)
 
@@ -263,7 +268,7 @@ def settings():
         logger.info("saving setup data")
         with open(".env", "w") as env_file:
             for key, value in sorted_env_vars.items():
-                env_file.write(f"{key}={value}\n")                
+                env_file.write(f"{key}={value}\n")
 
         # Restart the server to apply the new settings
         if os.uname().machine.startswith("aarch64"):
@@ -405,16 +410,32 @@ async def notify_clients(message):
 
 
 if __name__ == "__main__":
+
+    logger.info("Starting roFrame")
+
+    # move roon credentials to .env
+    if os.path.exists("roon_token.txt"):
+        os.environ["ROON_API_TOKEN"] = ""
+        with open("roon_token.txt", "r") as f:
+            os.environ["ROON_API_TOKEN"] = f.read().strip()
+        # delete the file
+        os.remove("roon_token.txt")
+
+        os.environ["ROON_CORE_ID"] = ""
+        with open(os.getenv("ROON_CORE_ID_FNAME"), "r") as f:
+            os.environ["ROON_CORE_ID"] = f.read().strip()
+        # delete the file
+        os.remove(os.getenv("ROON_CORE_ID_FNAME"))
+
+        resave_env()
+
     # Check if the Roon token file exists
-    if not os.path.exists("roon_token.txt"):
+    if not myRoonApi.check_auth():
         logger.info("Roon token file not found. Redirecting to /init.")
         app.run(debug=False, port=port, host=host)
         os._exit(0)  # Forcefully exit the application
 
     # start the Roon
-    if not myRoonApi.check_auth():
-        logger.error("Please authorise first using discovery.py")
-        os._exit(0)  # Forcefully exit the application
     if not myRoonApi.connect(notify_clients=notify_clients):
         logger.error("Unable to connect to Roon")
         os._exit(0)  # Forcefully exit the application
