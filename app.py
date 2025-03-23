@@ -8,6 +8,9 @@ import asyncio
 import logging
 import sdnotify  # Add this import
 import threading  # Add this import
+import qrcode  # Add this import
+from io import BytesIO  # Add this import
+import base64  # Add this import
 
 from flask import (
     redirect,
@@ -23,6 +26,11 @@ from dotenv import load_dotenv
 from myroonapi import MyRoonApi
 from art_generator import generate_mondrian
 
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Create the Flask app and SocketIO instance
 app = Flask(__name__)
 app.config["TEMPLATES_AUTO_RELOAD"] = True  # Enable auto-reloading of templates
 socketio = SocketIO(app, cors_allowed_origins="*")
@@ -37,7 +45,11 @@ def load_config():
     global clock_size, clock_offset, index_file, host, port, my_tz
 
     # Load environment variables from .env file
-    load_dotenv()
+    try:
+        load_dotenv()
+    except Exception as e:
+        logger.error(f"Error loading .env file: {e}")
+        raise
 
     my_tz = zoneinfo.ZoneInfo(os.getenv("TZ", "America/New_York"))
     name = os.getenv("NAME", "")
@@ -56,20 +68,21 @@ def load_config():
     host = os.getenv("HOST", "0.0.0.0")
     port = int(os.getenv("PORT", 5006))
 
-    print(os.environ)
+    # Validate critical environment variables
+    if not name:
+        logger.warning("NAME environment variable is not set.")
+    if not os.path.isdir(slideshow_folder):
+        logger.warning(f"Slideshow folder does not exist: {slideshow_folder}")
+
+    logger.info("Configuration loaded successfully.")
 
 
 load_config()
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 display_state = False
 
 myRoonApi = None
 if name:
-    print("name")
     myRoonApi = MyRoonApi()
 
 
@@ -92,7 +105,7 @@ def display(turn_on):
     if display_control == "on":
         try:
             subprocess.check_output(["xset", "dpms", "force", state])
-        except subprocess.CalledProcessError as e:
+        except subprocess.CalledProcessError:
             logger.warning("problem with xset")
     logger.info(f"display: {state}")
 
@@ -111,42 +124,92 @@ def background_thread():
     A background thread that emits a message every 10 minutes.
     """
     while not thread_stop_event.is_set():
-        myRoonApi = getRoonApi()
-        album = myRoonApi.get_zone_data()
-        state = album.get("state")
-        current_hour = datetime.now().astimezone(my_tz).hour
+        try:
+            myRoonApi = getRoonApi()
+            album = myRoonApi.get_zone_data()
+            state = album.get("state")
+            current_hour = datetime.now().astimezone(my_tz).hour
 
-        # Turn off screen during certain hours
-        if state in ["playing", "loading"] or is_screen_on(
-            current_hour, display_on_hour, display_off_hour
-        ):
-            display(True)
-        else:
-            display(False)
+            # Turn off screen during certain hours
+            if state in ["playing", "loading"] or is_screen_on(
+                current_hour, display_on_hour, display_off_hour
+            ):
+                display(True)
+            else:
+                display(False)
 
-        time.sleep(600)
+            # Wait for 600 seconds or until the thread_stop_event is set
+            thread_stop_event.wait(600)
+        except Exception as e:
+            logger.error(f"Error in background thread: {e}")
 
 
 def resave_env():
     # Load existing .env variables into a dictionary
     existing_env_vars = {}
-    with open(".env", "r") as env_file:
-        for line in env_file:
-            if "=" in line:
-                # if key starts with ROON and ends with FNAME, skip it
-                if line.strip().startswith("ROON") and line.strip().endswith("FNAME"):
-                    continue
-                key, value = line.strip().split("=", 1)
-                existing_env_vars[key] = os.getenv(key, value)
+    try:
+        with open(".env", "r") as env_file:
+            for line in env_file:
+                if "=" in line:
+                    # if key starts with ROON and ends with FNAME, skip it
+                    if line.strip().startswith("ROON") and line.strip().endswith("FNAME"):
+                        continue
+                    key, value = line.strip().split("=", 1)
+                    existing_env_vars[key] = os.getenv(key, value)
+    except FileNotFoundError:
+        logger.warning(".env file not found. Creating a new one.")
+    except Exception as e:
+        logger.error(f"Error reading .env file: {e}")
+        return
 
     # Sort the dictionary by keys
     sorted_env_vars = dict(sorted(existing_env_vars.items()))
 
     # Write the updated dictionary back to the .env file
-    logger.info("saving setup data")
-    with open(".env", "w") as env_file:
-        for key, value in sorted_env_vars.items():
-            env_file.write(f"{key}={value}\n")
+    try:
+        logger.info("Saving setup data to .env")
+        with open(".env", "w") as env_file:
+            for key, value in sorted_env_vars.items():
+                env_file.write(f"{key}={value}\n")
+    except Exception as e:
+        logger.error(f"Error writing to .env file: {e}")
+
+
+def validate_form_data(form):
+    """Validate and parse form data."""
+    try:
+        display_on_hour = int(form.get("DISPLAY_ON_HOUR", "9"))
+        display_off_hour = int(form.get("DISPLAY_OFF_HOUR", "23"))
+        if not (0 <= display_on_hour <= 23 and 0 <= display_off_hour <= 23):
+            raise ValueError("Display hours must be between 0 and 23.")
+
+        slideshow_transition_seconds = int(form.get("SLIDESHOW_TRANSITION_SECONDS", "15"))
+        if slideshow_transition_seconds <= 0:
+            raise ValueError("Slideshow transition seconds must be a positive integer.")
+
+        slideshow_clock_ratio = int(form.get("SLIDESHOW_CLOCK_RATIO", "0"))
+        if not (0 <= slideshow_clock_ratio <= 100):
+            raise ValueError("Slideshow clock ratio must be between 0 and 100.")
+
+        clock_size = int(form.get("CLOCK_SIZE", "0"))
+        if clock_size < 0:
+            raise ValueError("Clock size must be a non-negative integer.")
+
+        clock_offset = int(form.get("CLOCK_OFFSET", "0"))
+        if clock_offset < 0:
+            raise ValueError("Clock offset must be a non-negative integer.")
+
+        return {
+            "DISPLAY_ON_HOUR": str(display_on_hour),
+            "DISPLAY_OFF_HOUR": str(display_off_hour),
+            "SLIDESHOW_TRANSITION_SECONDS": str(slideshow_transition_seconds),
+            "SLIDESHOW_CLOCK_RATIO": str(slideshow_clock_ratio),
+            "CLOCK_SIZE": str(clock_size),
+            "CLOCK_OFFSET": str(clock_offset),
+        }
+    except ValueError as e:
+        logger.error(f"Invalid input: {e}")
+        raise
 
 
 @app.route("/ping")
@@ -217,45 +280,14 @@ def settings():
 
         # Get form data and validate inputs
         try:
-            display_on_hour = int(request.form.get("DISPLAY_ON_HOUR", "9"))
-            display_off_hour = int(request.form.get("DISPLAY_OFF_HOUR", "23"))
-            if not (0 <= display_on_hour <= 23 and 0 <= display_off_hour <= 23):
-                raise ValueError("Display hours must be between 0 and 23.")
-
-            slideshow_transition_seconds = int(
-                request.form.get("SLIDESHOW_TRANSITION_SECONDS", "15")
-            )
-            if slideshow_transition_seconds <= 0:
-                raise ValueError(
-                    "Slideshow transition seconds must be a positive integer."
-                )
-
-            slideshow_clock_ratio = int(request.form.get("SLIDESHOW_CLOCK_RATIO", "0"))
-            if not (0 <= slideshow_clock_ratio <= 100):
-                raise ValueError("Slideshow clock ratio must be between 0 and 100.")
-
-            clock_size = int(request.form.get("CLOCK_SIZE", "0"))
-            if clock_size < 0:
-                raise ValueError("Clock size must be a non-negative integer.")
-
-            clock_offset = int(request.form.get("CLOCK_OFFSET", "0"))
-            if clock_offset < 0:
-                raise ValueError("Clock offset must be a non-negative integer.")
+            validated_data = validate_form_data(request.form)
         except ValueError as e:
-            logger.error(f"Invalid input: {e}")
             return jsonify({"error": str(e)}), 400
 
         # Prepare form data for updating the .env file
         form_env_vars = {
             "ROON_ZONE": request.form.get("ROON_ZONE", os.getenv("ROON_ZONE", "")),
-            "DISPLAY_ON_HOUR": str(display_on_hour),
-            "DISPLAY_OFF_HOUR": str(display_off_hour),
-            "DISPLAY_CONTROL": request.form.get("DISPLAY_CONTROL", "off"),
-            "SLIDESHOW": request.form.get("SLIDESHOW", "on"),
-            "SLIDESHOW_TRANSITION_SECONDS": str(slideshow_transition_seconds),
-            "SLIDESHOW_CLOCK_RATIO": str(slideshow_clock_ratio),
-            "CLOCK_SIZE": str(clock_size),
-            "CLOCK_OFFSET": str(clock_offset),
+            **validated_data,
         }
 
         # Update existing_env_vars with form_env_vars
@@ -310,14 +342,31 @@ def settings():
 
 @app.route("/init", methods=["GET", "POST"])
 def init():
-
     logger.info("init")
     if os.path.exists(".env"):
         return redirect(url_for("settings"))
 
     if request.method == "GET":
-        print("init")
-        return render_template("init.html")
+        external_ip = None
+        qr_code_base64 = None
+        try:
+            if True or os.uname().machine.startswith("aarch64"):  # Check if running on Raspberry Pi
+                #external_ip = subprocess.check_output( ["hostname", "-I"], text=True).strip().split()[0]  # Get the first IP address
+
+                external_ip = "192.168.86.42"
+                if external_ip:
+                    url = f"http://{external_ip}/init"
+                    qr = qrcode.QRCode()
+                    qr.add_data(url)
+                    qr.make(fit=True)
+                    img = qr.make_image(fill="black", back_color="white")
+                    buffered = BytesIO()
+                    img.save(buffered, format="PNG")
+                    qr_code_base64 = base64.b64encode(buffered.getvalue()).decode("utf-8")
+        except Exception as e:
+            logger.error(f"Error retrieving external IP or generating QR code: {e}")
+
+        return render_template("init.html", external_ip=external_ip, qr_code=qr_code_base64)
 
     elif request.method == "POST":
         logger.info("init POST")
@@ -344,13 +393,6 @@ def init():
         except Exception as e:
             logger.error(f"Error during registration: {e}")
             return jsonify({"error": str(e)}), 400
-
-            for file in [".env", "roon_token.txt", "roon_core_id.txt"]:
-                if os.path.exists(file):
-                    os.remove(file)
-            return redirect(url_for("init"))
-
-    return redirect(url_for("index"))
 
 
 @app.route("/shutdown", methods=["POST", "GET"])
@@ -401,6 +443,7 @@ def trigger_album_update():
         display(True)
 
 
+# Notify clients of album updates
 async def notify_clients(message):
     logger.info("notify_clients")
     logger.info(message)
