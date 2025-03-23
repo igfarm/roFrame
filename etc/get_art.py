@@ -9,9 +9,10 @@ import sys
 def get_random_art(orientation="landscape"):
     url = "https://api.artic.edu/api/v1/artworks/search"
     params = {
+        "page": 5,
         "query[term][is_public_domain]": "true",
         "limit": 100,  # Fetch more results to increase chances of desired orientation
-        "fields": "id,title,image_id,thumbnail.width,thumbnail.height"
+        "fields": "id,title,image_id,artwork_type_title,thumbnail.width,thumbnail.height"
     }
 
     response = requests.get(url, params=params)
@@ -21,12 +22,20 @@ def get_random_art(orientation="landscape"):
     data = response.json()
     artworks = data.get("data", [])
 
+    # Filter artworks by artwork_type_title
+    valid_types = {"Painting"}
+    artworks = [
+        art for art in artworks 
+        if art.get("artwork_type_title") in valid_types
+    ]
+
     # Filter artworks with valid image_id and specified orientation
     if orientation == "landscape":
         valid_artworks = [
             art for art in artworks 
             if art.get("image_id") 
             and art.get("thumbnail", {}).get("width", 0) > art.get("thumbnail", {}).get("height", 0)
+            and art.get("thumbnail", {}).get("width", 0) / art.get("thumbnail", {}).get("height", 1) >= 1.3
         ]
     elif orientation == "portrait":
         valid_artworks = [

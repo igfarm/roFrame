@@ -46,7 +46,7 @@ class MyRoonApi:
             return False
         return True
 
-    def register(self) -> None:
+    def register(self) -> list:
         discover = RoonDiscovery(None)
         server = discover.first()
         discover.stop()
@@ -63,6 +63,8 @@ class MyRoonApi:
         if album is None:
             self.logger.warning("Please set ROON_ZONE to one of the values above")
 
+        available_zones = self.get_zone_list()
+    
         self.logger.info("Got authorisation")
         self.logger.info(self.roonapi.host)
         self.logger.info(self.roonapi.core_name)
@@ -71,6 +73,8 @@ class MyRoonApi:
         # This is what we need to reconnect
         self.__save_credentials(self.roonapi.core_id, self.roonapi.token)
         self.roonapi.stop()
+
+        return available_zones
 
     def connect(
         self, notify_clients: Optional[Callable[[Dict[str, Any]], None]] = None

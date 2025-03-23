@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>roFrame - Initialization </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link href="/static/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>roFrame Initialization</h1>
+        <form method="POST" action="/init">
+                        <div class="card mb-4">
+                <div class="card-header">
+                  Device
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="NAME" class="form-label">Unique Device Name</label>
+                        <input type="text" class="form-control" id="NAME" name="NAME" value="">
+                    </div>
+                </div>
+            </div>
+            <button type="submit" id="submitButton" class="btn btn-primary">Save</button>
+            <div id="spinner" class="spinner-border text-primary d-none" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+        </form>
+    </div>
+    <script>
+
+        document.querySelector('form').addEventListener('submit', function(event) {
+
+            const submitButton = document.getElementById('submitButton');
+            const spinner = document.getElementById('spinner');
+            submitButton.classList.add('d-none');
+            spinner.classList.remove('d-none');
+            event.preventDefault();
+
+            fetch(this.action, {
+                method: this.method,
+                body: new FormData(this),
+            })
+            .then(response => {
+                if (response.status === 200) {
+                    console.log('Form submitted successfully');
+                    setTimeout(() => {
+                        console.log('Redirecting to /init');
+                        window.location.href = '/init';
+                    }, 10000);
+                } else {
+                    throw new Error('Failed to submit form');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                submitButton.classList.remove('d-none');
+                spinner.classList.add('d-none');
+                alert('An error occurred. Please try again.');
+            });
+        });
+    </script>
+</body>
+</html>

@@ -7,47 +7,68 @@ from threading import Event
 import asyncio
 import logging
 import sdnotify  # Add this import
+import threading  # Add this import
 
-from flask import redirect, url_for, request, Flask, render_template, jsonify, send_from_directory
+from flask import (
+    redirect,
+    url_for,
+    request,
+    Flask,
+    render_template,
+    jsonify,
+    send_from_directory,
+)
 from flask_socketio import SocketIO, emit
 from dotenv import load_dotenv
 from myroonapi import MyRoonApi
 from art_generator import generate_mondrian
 
-# Load environment variables from .env file
-load_dotenv()
-
-my_tz = zoneinfo.ZoneInfo(os.getenv("TZ", "America/New_York"))
-
-myRoonApi = MyRoonApi()
-
 app = Flask(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True  # Enable auto-reloading of templates
 socketio = SocketIO(app, cors_allowed_origins="*")
 thread = None
 thread_stop_event = Event()
 
-name = os.getenv("NAME", "roFrame")
 
-display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
-display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
-display_control = os.getenv("DISPLAY_CONTROL", "off")
-slideshow_enabled = os.getenv("SLIDESHOW", "on") == "on"
-slideshow_folder = os.getenv(
-    "SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures")
-)
-slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
-slideshow_clock_ratio = int(os.getenv("SLIDESHOW_CLOCK_RATIO", 0)) / 100
+def load_config():
+    """Load configuration from environment variables into global scope."""
+    global name, display_on_hour, display_off_hour, display_control, slideshow_enabled
+    global slideshow_folder, slideshow_transition_seconds, slideshow_clock_ratio
+    global clock_size, clock_offset, index_file, host, port, my_tz
 
-clock_size = int(os.getenv("CLOCK_SIZE", 0))
-clock_offset = int(os.getenv("CLOCK_OFFSET", 0))
+    # Load environment variables from .env file
+    load_dotenv()
 
-index_file = os.getenv("INDEX_FILE", "index.html")
+    my_tz = zoneinfo.ZoneInfo(os.getenv("TZ", "America/New_York"))
+    name = os.getenv("NAME", "")
+    display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
+    display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
+    display_control = os.getenv("DISPLAY_CONTROL", "off")
+    slideshow_enabled = os.getenv("SLIDESHOW", "on") == "on"
+    slideshow_folder = os.getenv(
+        "SLIDESHOW_FOLDER", os.path.join(app.root_path, "./pictures")
+    )
+    slideshow_transition_seconds = int(os.getenv("SLIDESHOW_TRANSITION_SECONDS", 15))
+    slideshow_clock_ratio = int(os.getenv("SLIDESHOW_CLOCK_RATIO", 0)) / 100
+    clock_size = int(os.getenv("CLOCK_SIZE", 0))
+    clock_offset = int(os.getenv("CLOCK_OFFSET", 0))
+    index_file = os.getenv("INDEX_FILE", "index.html")
+    host = os.getenv("HOST", "0.0.0.0")
+    port = int(os.getenv("PORT", 5006))
+
+
+load_config()
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 display_state = False
+
+myRoonApi = None
+if name:
+    print("name")
+    myRoonApi = MyRoonApi()
 
 
 def getRoonApi():
@@ -67,7 +88,10 @@ def display(turn_on):
     """Function to control the display"""
     state = "on" if turn_on else "off"
     if display_control == "on":
-        subprocess.check_output(["xset", "dpms", "force", state])
+        try:
+            subprocess.check_output(["xset", "dpms", "force", state])
+        except subprocess.CalledProcessError as e:
+            logger.warning("problem with xset")
     logger.info(f"display: {state}")
 
 
@@ -101,8 +125,36 @@ def background_thread():
         time.sleep(600)
 
 
+def resave_env():
+    # Load existing .env variables into a dictionary
+    existing_env_vars = {}
+    with open(".env", "r") as env_file:
+        for line in env_file:
+            if "=" in line:
+                key, value = line.strip().split("=", 1)
+                existing_env_vars[key] = os.getenv(key, value)
+
+    # Sort the dictionary by keys
+    sorted_env_vars = dict(sorted(existing_env_vars.items()))
+
+    # Write the updated dictionary back to the .env file
+    logger.info("saving setup data")
+    with open(".env", "w") as env_file:
+        for key, value in sorted_env_vars.items():
+            env_file.write(f"{key}={value}\n")
+
+
+@app.route("/ping")
+def ping():
+    return jsonify({"message": "pong"})
+
+
 @app.route("/")
 def index():
+
+    if not os.path.exists(".env"):
+        return redirect(url_for("init"))
+
     images = []
     art_images = []
     if slideshow_enabled:
@@ -140,9 +192,15 @@ def static_files(filename):
     """Serve static files from the static directory."""
     return send_from_directory(os.path.join(app.root_path, "static"), filename)
 
-@app.route("/setup", methods=["GET", "POST"])
-def setup():
+
+@app.route("/settings", methods=["GET", "POST"])
+def settings():
+
+    if not os.path.exists(".env"):
+        return redirect(url_for("init"))
+
     if request.method == "POST":
+
         # Load existing .env variables into a dictionary
         existing_env_vars = {}
         if os.path.exists(".env"):
@@ -159,9 +217,13 @@ def setup():
             if not (0 <= display_on_hour <= 23 and 0 <= display_off_hour <= 23):
                 raise ValueError("Display hours must be between 0 and 23.")
 
-            slideshow_transition_seconds = int(request.form.get("SLIDESHOW_TRANSITION_SECONDS", "15"))
+            slideshow_transition_seconds = int(
+                request.form.get("SLIDESHOW_TRANSITION_SECONDS", "15")
+            )
             if slideshow_transition_seconds <= 0:
-                raise ValueError("Slideshow transition seconds must be a positive integer.")
+                raise ValueError(
+                    "Slideshow transition seconds must be a positive integer."
+                )
 
             slideshow_clock_ratio = int(request.form.get("SLIDESHOW_CLOCK_RATIO", "0"))
             if not (0 <= slideshow_clock_ratio <= 100):
@@ -201,14 +263,20 @@ def setup():
         logger.info("saving setup data")
         with open(".env", "w") as env_file:
             for key, value in sorted_env_vars.items():
-                env_file.write(f"{key}={value}\n")
+                env_file.write(f"{key}={value}\n")                
 
         # Restart the server to apply the new settings
         if os.uname().machine.startswith("aarch64"):
             logger.info("restarting...")
-            subprocess.Popen(["/bin/bash", "./etc/restart.sh", "5"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            subprocess.Popen(
+                ["/bin/bash", "./etc/restart.sh", "5"],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+        else:
+            threading.Thread(target=lambda: (time.sleep(2), os._exit(0))).start()
 
-        return redirect(url_for("setup"))
+        return redirect(url_for("settings"))
 
     # Load current .env variables
     current_env = {
@@ -232,7 +300,70 @@ def setup():
 
     current_env["AVAILABLE_ZONES"] = available_zones
 
-    return render_template("setup.html", env=current_env)
+    return render_template("settings.html", env=current_env)
+
+
+@app.route("/init", methods=["GET", "POST"])
+def init():
+
+    logger.info("init")
+    if os.path.exists(".env"):
+        return redirect(url_for("settings"))
+
+    if request.method == "GET":
+        print("init")
+        return render_template("init.html")
+
+    elif request.method == "POST":
+        logger.info("init POST")
+        logger.info(request.form)
+
+        name = request.form.get("NAME", "").strip()
+        if not name:
+            return jsonify({"error": "Name cannot be empty"}), 400
+
+        # Run the register process
+        try:
+            os.environ["NAME"] = name
+            api = MyRoonApi()
+            available_zones = api.register()
+            os.environ["ROON_ZONE"] = available_zones[0] if available_zones else ""
+            subprocess.run(["cp", ".env.example", ".env"], check=True)
+            resave_env()
+
+            # Schedule os._exit(0) two seconds after returning
+            threading.Thread(target=lambda: (time.sleep(2), os._exit(0))).start()
+
+            return jsonify({"message": "Registration successful"}), 200
+
+        except Exception as e:
+            logger.error(f"Error during registration: {e}")
+            return jsonify({"error": str(e)}), 400
+
+            for file in [".env", "roon_token.txt", "roon_core_id.txt"]:
+                if os.path.exists(file):
+                    os.remove(file)
+            return redirect(url_for("init"))
+
+    return redirect(url_for("index"))
+
+
+@app.route("/shutdown", methods=["POST", "GET"])
+def shutdown():
+    """Gracefully shut down the application."""
+    logger.info("Shutting down the application...")
+    thread_stop_event.set()  # Stop the background thread
+    func = request.environ.get("werkzeug.server.shutdown")
+    if func is None:
+        logger.warning(
+            "Not running with the Werkzeug Server. Using os._exit(0) as fallback."
+        )
+        os._exit(0)  # Forcefully exit the application
+    func()  # Call the Werkzeug server shutdown function
+
+    return jsonify({"message": "Application shutting down..."}), 200
+
+
 @socketio.on("connect")
 def handle_connect():
     logger.info("Socket client connected")
@@ -274,13 +405,19 @@ async def notify_clients(message):
 
 
 if __name__ == "__main__":
+    # Check if the Roon token file exists
+    if not os.path.exists("roon_token.txt"):
+        logger.info("Roon token file not found. Redirecting to /init.")
+        app.run(debug=False, port=port, host=host)
+        os._exit(0)  # Forcefully exit the application
+
     # start the Roon
     if not myRoonApi.check_auth():
         logger.error("Please authorise first using discovery.py")
-        exit()
+        os._exit(0)  # Forcefully exit the application
     if not myRoonApi.connect(notify_clients=notify_clients):
         logger.error("Unable to connect to Roon")
-        exit()
+        os._exit(0)  # Forcefully exit the application
 
     # Notify systemd that the service is ready
     n = sdnotify.SystemdNotifier()
@@ -290,7 +427,7 @@ if __name__ == "__main__":
     socketio.run(
         app,
         debug=False,
-        port=int(os.getenv("PORT", 5006)),
-        host=os.getenv("HOST", "127.0.0.1"),
+        port=port,
+        host=host,
         allow_unsafe_werkzeug=True,
     )
