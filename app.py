@@ -158,6 +158,9 @@ def settings():
     if not config.dot_env_exists():
         return redirect(url_for("init"))
 
+    if config.is_locked():
+        return redirect(url_for("index"))
+
     if request.method == "POST":
         # Get form data and validate inputs
         try:

@@ -38,6 +38,10 @@ def validate_settings_form_data(form):
         clock_offset = int(form.get("CLOCK_OFFSET", "0"))
         if clock_offset < 0:
             raise ValueError("Clock offset must be a non-negative integer.")
+        
+        lock_settings = form.get("LOCK_SETTINGS", "off")
+        if lock_settings not in ["on", "off"]:
+            lock_settings = "off"
 
         return {
             "DISPLAY_ON_HOUR": str(display_on_hour),
@@ -46,6 +50,7 @@ def validate_settings_form_data(form):
             "SLIDESHOW_CLOCK_RATIO": str(slideshow_clock_ratio),
             "CLOCK_SIZE": str(clock_size),
             "CLOCK_OFFSET": str(clock_offset),
+            "LOCK_SETTINGS": lock_settings
         }
     except ValueError as e:
         logger.error(f"Invalid input: {e}")

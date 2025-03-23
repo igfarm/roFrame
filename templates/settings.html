@@ -29,6 +29,11 @@
                                     {% endfor %}
                                 </select>
                             </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="LOCK_SETTINGS" name="LOCK_SETTINGS" value="on">
+                                <label class="form-check-label" for="LOCK_SETTINGS">Lock Settings</label>
+                                <small class="text-danger d-block">Warning: This will prevent further changes.</small>
+                            </div>
                         </div>
                     </div>
 
@@ -59,7 +64,6 @@
                         Slideshow
                         </div>
                         <div class="card-body">
-
                             <div class="mb-3">
                                 <label for="SLIDESHOW" class="form-label">Enable Slideshow</label>
                                 <select class="form-select" id="SLIDESHOW" name="SLIDESHOW">
@@ -114,41 +118,53 @@
 
                         </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                    <script>
-
-                        document.querySelector('form').addEventListener('submit', function(event) {
-                            document.querySelector('button[type="submit"]').style.display = 'none';
-                            const spinner = document.createElement('div');
-                            spinner.className = 'spinner-border text-primary';
-                            spinner.role = 'status';
-                            spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
-                            this.appendChild(spinner); // Add spinner to the form
-                            event.preventDefault(); // Prevent the default form submission
-                            const formData = new FormData(this);
-                            fetch(this.action, {
-                                method: this.method,
-                                body: formData
-                            })
-                            .then(response => {
-                                if (response.ok) {
-                                    console.log('Form submitted successfully');
-                                } else {
-                                    console.error('Form submission failed');
-                                }
-                            })
-                            .catch(error => {
-                                console.error('Error:', error);
-                            });
-                            setTimeout(() => {
-                                window.location.reload(); // Reload the page after 10 seconds
-                            }, 15000);
-                        });
-                    </script>
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script>
+        document.querySelector('form').addEventListener('submit', function(event) {
+            // Hide the submit button
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.style.display = 'none';
+            }
+
+            const spinner = document.createElement('div');
+            spinner.className = 'spinner-border text-primary';
+            spinner.role = 'status';
+            spinner.innerHTML = '<span class="visually-hidden">Loading...</span>';
+            this.appendChild(spinner); // Add spinner to the form
+
+            // Allow the form to post normally
+            const formData = new FormData(this);
+            fetch(this.action, {
+                method: this.method,
+                body: formData
+            })
+            .then(response => {
+                if (response.ok) {
+                    console.log('Form submitted successfully');
+                } else {
+                    console.error('Form submission failed');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+
+            // Remove the following line to allow the form to post correctly
+            event.preventDefault();
+
+            setTimeout(() => {
+                window.location.reload(); // Reload the page after 10 seconds
+            }, 15000);
+        });
+    </script>
     <script src="/static/bootstrap.bundle.min.js"></script>
 </body>
 </html>

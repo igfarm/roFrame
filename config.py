@@ -22,6 +22,9 @@ class Config:
     def dot_env_exists(self):
         return os.path.exists(".env")
 
+    def is_locked(self):
+        return os.getenv("LOCK_SETTINGS", "off") == "on"
+    
     def reset(self):
         """Reset the .env file to the example configuration and reload settings."""
         subprocess.run(["cp", ".env.example", ".env"], check=True)
@@ -63,6 +66,7 @@ class Config:
 
     def save(self, updates):
         """Update the .env file with new values."""
+        logger.info("Updating .env file with new settings.")
         env_vars = self._read_env_file()
         env_vars.update(updates)
         self._write_env_file(env_vars)
@@ -89,15 +93,24 @@ class Config:
                         if any(re.match(exp, key) for exp in skip_keys):
                             continue
                         env_vars[key] = os.getenv(key, value)
+
         except FileNotFoundError:
             logger.warning(".env file not found. Creating a new one.")
         except Exception as e:
             logger.error(f"Error reading .env file: {e}")
+
+        if ("LOCK_SETTINGS" not in env_vars):
+            env_vars["LOCK_SETTINGS"] = "off"
+            os.environ["LOCK_SETTINGS"] = env_vars["LOCK_SETTINGS"]
+
         return env_vars
 
     def _write_env_file(self, env_vars):
         """Write a dictionary of environment variables to the .env file."""
         try:
+            if "LOCK_SETTINGS" not in env_vars:
+                env_vars["LOCK_SETTINGS"] = "off"
+
             logger.info("Saving setup data to .env")
             with open(".env", "w") as env_file:
                 for key, value in sorted(env_vars.items()):
