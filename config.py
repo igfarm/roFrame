@@ -15,6 +15,9 @@ class Config:
         try:
             self.name = None
             load_dotenv()
+
+            self.port = 5006
+            self.host = "0.0.0.0"
         except Exception as e:
             logger.error(f"Error loading .env file: {e}")
             raise
@@ -24,7 +27,7 @@ class Config:
 
     def is_locked(self):
         return os.getenv("LOCK_SETTINGS", "off") == "on"
-    
+
     def reset(self):
         """Reset the .env file to the example configuration and reload settings."""
         subprocess.run(["cp", ".env.example", ".env"], check=True)
@@ -99,7 +102,7 @@ class Config:
         except Exception as e:
             logger.error(f"Error reading .env file: {e}")
 
-        if ("LOCK_SETTINGS" not in env_vars):
+        if "LOCK_SETTINGS" not in env_vars:
             env_vars["LOCK_SETTINGS"] = "off"
             os.environ["LOCK_SETTINGS"] = env_vars["LOCK_SETTINGS"]
 

@@ -16,7 +16,7 @@ A simple digital frame that shows "Now Playing" information from a Roon audio zo
 
 ## Setup
 
-Assuming you have freshly installed the latest Raspberry Pi OS Lite (bookworm) on an SD card, enabled Wi-Fi and SSH access, and opened a remote terminal to the board.
+Assuming you have freshly installed the latest Raspberry Pi OS Lite (64 bit - bookworm) on an SD card, enabled Wi-Fi and SSH access, and opened a remote terminal to the board.
 
 ### Install Application
 
@@ -35,24 +35,13 @@ Install application:
     source venv/bin/activate
     pip install -r requirements.txt
 
-Make a copy of the configuration and update `NAME` to have a unique name for this device:
-
-    cp .env.example .env
-    nano .env
 
 Start the discovery program, and go to Roon extensions to approve it:
 
+    cp .env.example .env
     ./venv/bin/python discovery.py
 
-This will list all available zones. Edit `.env` file to add update `ROON_ZONE` to one of those values if you have not done so already.
-
 Add a few images to the `pictures` folder. In my case, the panel I am using has a resolution of 1024x600, so pictures should be that size. If you don't do this step, you will be rewarded with some modern art on your frame.
-
-Test that things are working as expected by starting the frame application:
-
-    ./venv/bin/python app.py
-
-and open a browser and open the URL of the machine the app is running on as indicated when running the app.
 
 ### Install and configure OS
 

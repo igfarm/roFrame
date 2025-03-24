@@ -1,5 +1,5 @@
 #!/bin/bash
-HOST=frame.local
+HOST=frame0.local
 set -e
 rsync -av --exclude deploy.sh \
   --exclude venv/  \

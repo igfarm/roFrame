@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Enable portrait mode
-# xrandr --output HDMI-1 --rotate right
+xrandr --output HDMI-1 --rotate right
 
 # Disable mouse and power management
 unclutter -idle 0.1 -root &
@@ -18,7 +18,7 @@ XMESSAGE_PID=$!
 URL="http://127.0.0.1:5006"
 echo "Waiting for $URL to be available..."
 while true; do
-    STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
+    STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$URL/ping")
     
     if [ "$STATUS_CODE" -eq 200 ]; then
         echo "$URL is up!"

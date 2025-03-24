@@ -1,6 +1,23 @@
+import os
+import subprocess
+import threading
+import time
 import logging
 
 logger = logging.getLogger(__name__)
+
+
+def restart():
+    """Restart the server to apply new settings."""
+    logger.info("restarting...")
+    if os.uname().machine.startswith("aarch64"):
+        subprocess.Popen(
+            ["/bin/bash", "./etc/restart.sh", "5"],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    else:
+        threading.Thread(target=lambda: (time.sleep(2), os._exit(0))).start()
 
 
 def is_screen_on(current_hour, on_hour, off_hour):
@@ -38,7 +55,7 @@ def validate_settings_form_data(form):
         clock_offset = int(form.get("CLOCK_OFFSET", "0"))
         if clock_offset < 0:
             raise ValueError("Clock offset must be a non-negative integer.")
-        
+
         lock_settings = form.get("LOCK_SETTINGS", "off")
         if lock_settings not in ["on", "off"]:
             lock_settings = "off"
@@ -50,7 +67,7 @@ def validate_settings_form_data(form):
             "SLIDESHOW_CLOCK_RATIO": str(slideshow_clock_ratio),
             "CLOCK_SIZE": str(clock_size),
             "CLOCK_OFFSET": str(clock_offset),
-            "LOCK_SETTINGS": lock_settings
+            "LOCK_SETTINGS": lock_settings,
         }
     except ValueError as e:
         logger.error(f"Invalid input: {e}")

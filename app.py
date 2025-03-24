@@ -22,7 +22,7 @@ from flask import (
     send_from_directory,
 )
 from flask_socketio import SocketIO, emit
-from utils import is_screen_on, validate_settings_form_data
+from utils import is_screen_on, validate_settings_form_data, restart
 from myroonapi import MyRoonApi
 from art_generator import generate_mondrian
 from config import Config  # Import the Config class
@@ -225,14 +225,18 @@ def init():
         external_ip = None
         qr_code_base64 = None
         try:
-            if True or os.uname().machine.startswith(
+            if os.uname().machine.startswith(
                 "aarch64"
             ):  # Check if running on Raspberry Pi
-                # external_ip = subprocess.check_output( ["hostname", "-I"], text=True).strip().split()[0]  # Get the first IP address
+                logger.info("Generating QR code for Raspberry Pi")
+                while not external_ip:
+                    external_ip = subprocess.check_output( ["hostname", "-I"], text=True).strip().split()[0]  # Get the first IP address
+                    time.sleep(1)
 
-                external_ip = "192.168.86.42"
+                logger.info(f"External IP: {external_ip}")
                 if external_ip:
-                    url = f"http://{external_ip}/init"
+                    logger.info("Generating QR code")
+                    url = f"http://{external_ip}:{config.port}/init"
                     qr = qrcode.QRCode()
                     qr.add_data(url)
                     qr.make(fit=True)
@@ -246,7 +250,7 @@ def init():
             logger.error(f"Error retrieving external IP or generating QR code: {e}")
 
         return render_template(
-            "init.html", external_ip=external_ip, qr_code=qr_code_base64
+            "init.html", url=url, qr_code=qr_code_base64
         )
 
     else:
@@ -264,17 +268,17 @@ def init():
 
             if not available_zones:
                 return jsonify({"error": "No Roon zones found"}), 400
-            
+
             # Save the Roon core ID and token to the .env file
             config.save(
                 {
                     "ROON_CORE_ID": os.environ["ROON_CORE_ID"],
                     "ROON_API_TOKEN": os.environ["ROON_API_TOKEN"],
-                    "ROON_ZONE": available_zones[0] if available_zones else ""
+                    "ROON_ZONE": available_zones[0] if available_zones else "",
                 }
             )
-            # Schedule os._exit(0) two seconds after returning
-            threading.Thread(target=lambda: (time.sleep(2), os._exit(0))).start()
+            
+            restart()
 
             return jsonify({"message": "Registration successful"}), 200
 
@@ -353,7 +357,11 @@ if __name__ == "__main__":
     config.migrage_legacy()
 
     # Check if the Roon token file exists
-    if not myRoonApi.check_auth():
+    if not config.dot_env_exists() or not myRoonApi.check_auth():
+        # Notify systemd that the service is ready
+        n = sdnotify.SystemdNotifier()
+        n.notify("READY=1")
+
         logger.info("Roon token file not found. Redirecting to /init.")
         app.run(debug=False, port=config.port, host=config.host)
         os._exit(0)  # Forcefully exit the application

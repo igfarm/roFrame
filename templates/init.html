@@ -31,16 +31,16 @@
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </form>
-            {% if external_ip %}
+            {% if url %}
                 <div class="text-center">
-                    <p>If your device does not have a keyboard, visit <strong>http://{{ external_ip }}/init</strong> to finish setup 
+                    <p>If your device does not have a keyboard, visit <strong>{{ url }}</strong> to finish setup 
                     or
                     scan the QR code to go there:</p>
                     <img src="data:image/png;base64,{{ qr_code }}" alt="QR Code" class="img-fluid">
                 </div>
             {% endif %}
         </div>
-        {% if not external_ip %}
+        {% if not url %}
             <p>Unable to retrieve the device's IP address.</p>
         {% endif %}
     </div>

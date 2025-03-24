@@ -1,139 +1,161 @@
 @font-face {
-    font-family: "Butler1";
-    src: url("static/fonts/Butler1/Butler1.ttf.woff");
-    font-weight: normal;
-    font-style: normal;
-  }
+  font-family: "Butler1";
+  src: url("static/fonts/Butler1/Butler1.ttf.woff");
+  font-weight: normal;
+  font-style: normal;
+}
 
-  @font-face {
-    font-family: "Roboto";
-    src: url("/static/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf");
-    font-weight: normal;
-    font-style: normal;
-  }
+@font-face {
+  font-family: "Roboto";
+  src: url("/static/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf");
+  font-weight: normal;
+  font-style: normal;
+}
 
-  /* Reset default margins/padding */
-  html,
-  body {
-    margin: 0;
-    padding: 0;
-    height: 100%; /* Let body fill browser window height */
-    background-color: black;
-    color: white;
-    font-family: "Butler1", sans-serif;
-  }
+/* Reset default margins/padding */
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  /* Let body fill browser window height */
+  background-color: black;
+  color: white;
+  font-family: "Butler1", sans-serif;
+}
 
-  /* Main container (use flexbox to separate image area and info area) */
-  .main-container {
-    display: flex;
-    flex-direction: row; /* default to "landscape" layout */
-    width: 100%;
-    height: 100%; /* fill entire viewport */
-  }
+/* Main container (use flexbox to separate image area and info area) */
+.main-container {
+  display: flex;
+  flex-direction: row;
+  /* default to "landscape" layout */
+  width: 100%;
+  height: 100%;
+  /* fill entire viewport */
+}
 
-  /* Square container that holds the <img> */
-  .square-area {
-    position: relative; /* for absolutely-positioned img if needed */
-    overflow: hidden;
-    /* We'll define width/height differently in portrait vs. landscape */
+/* Square container that holds the <img> */
+.square-area {
+  position: relative;
+  /* for absolutely-positioned img if needed */
+  overflow: hidden;
+  /* We'll define width/height differently in portrait vs. landscape */
 
-    /* Force a perfect square: same dimension as viewport height */
-    width: 100vh;
-    height: 100vh;
-  }
+  /* Force a perfect square: same dimension as viewport height */
+  width: 100vh;
+  height: 100vh;
+}
 
-  .square-area img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* preserve aspect ratio, crop overflow */
-    display: block; /* removes inline gap */
-  }
+.square-area img {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
 
-  #info-area {
-    flex: 1; /* fill the remaining horizontal space */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 1rem;
-    overflow: auto; /* just in case content is long */
-  }
+#info-area {
+  flex: 1;
+  /* fill the remaining horizontal space */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  overflow: auto;
+  /* just in case content is long */
+}
+
+/* Full container that holds the <img> */
+.full-area {
+  position: relative;
+  /* for absolutely-positioned img if needed */
+  overflow: hidden;
+  width: 100%;
+  /* We'll define width/height differently in portrait vs. landscape */
+}
+
+.full-area img {
+  object-fit: contain;
+  position: absolute;
+  opacity: 0;
+  transition: opacity 1s ease-in-out;
+
+  display: block;
+  /* removes inline gap */
+}
+
+#album-artist {
+  font-family: "Butler1", sans-serif;
+  font-weight: bold;
+  margin-bottom: 0.5em;
+  line-height: 1.2em;
+}
+
+#album-title,
+#album-track {
+  font-family: "Roboto", sans-serif;
+  margin-bottom: 0.5em;
+  filter: brightness(80%);
+  line-height: 1.2em;
+}
+
+.slide.active {
+  opacity: 1;
+}
+
+/* =======================
+   LANDSCAPE MODE
+   ======================= */
+@media (min-aspect-ratio: 1/1) {
 
   /* Full container that holds the <img> */
   .full-area {
-    position: relative; /* for absolutely-positioned img if needed */
-    overflow: hidden;
     width: 100%;
     /* We'll define width/height differently in portrait vs. landscape */
   }
+
   .full-area img {
-    object-fit: contain;
-    position: absolute;
-    opacity: 0;
-    transition: opacity 1s ease-in-out;
-
-    display: block; /* removes inline gap */
+    width: 100%;
+    top: 50%;
+    transform: translateY(-50%);
   }
+}
 
-  #album-artist {
-    font-family: "Butler1", sans-serif;
-    font-weight: bold;
-    margin-bottom: 0.5em;
-    line-height: 1.2em;
-  }
-  #album-title,
-  #album-track {
-    font-family: "Roboto", sans-serif;
-    margin-bottom: 0.5em;
-    filter: brightness(80%);
-    line-height: 1.2em;
-  }
-
-  .slide.active {
-    opacity: 1;
-  }
-
-  /* =======================
-   LANDSCAPE MODE
-   ======================= */
-  @media (min-aspect-ratio: 1/1) {
-    /* Full container that holds the <img> */
-    .full-area {
-      width: 100%;
-      /* We'll define width/height differently in portrait vs. landscape */
-    }
-    .full-area img {
-      width: 100%;
-      top: 50%;
-      transform: translateY(-50%);
-    }
-  }
-
-  /* =======================
+/* =======================
    PORTRAIT MODE
    ======================= */
-  @media (max-aspect-ratio: 1/1) {
-    .main-container {
-      flex-direction: column; /* stack the sections vertically */
-    }
-    .square-area {
-      width: 100%; /* fill screen width */
-      height: 100vw; /* force square by matching viewport width */
-    }
-
-    #info-area {
-      flex: 1; /* fill remaining vertical space */
-      width: 100%;
-      text-align: center;
-    }
-
-    .full-area {
-      width: 100%; /* fill screen width */
-      height: 100vh; /* force square by matching viewport width */
-    }
-
-    .full-area img {
-      height: 100%;
-      left: 50%;
-      transform: translateX(-50%);
-    }
+@media (max-aspect-ratio: 1/1) {
+  .main-container {
+    flex-direction: column;
+    /* stack the sections vertically */
   }
+
+  .square-area {
+    width: 100%;
+    /* fill screen width */
+    height: 100vw;
+    /* force square by matching viewport width */
+  }
+
+  #info-area {
+    flex: 1;
+    /* fill remaining vertical space */
+    width: 100%;
+    text-align: center;
+  }
+
+  .full-area {
+    width: 100%;
+    /* fill screen width */
+    height: 100vh;
+    /* force square by matching viewport width */
+  }
+
+  .full-area img {
+    height: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+}
