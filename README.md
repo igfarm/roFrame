@@ -16,72 +16,40 @@ A simple digital frame that shows "Now Playing" information from a Roon audio zo
 
 ## Setup
 
-Assuming you have freshly installed the latest Raspberry Pi OS Lite (64 bit - bookworm) on an SD card, enabled Wi-Fi and SSH access, and opened a remote terminal to the board.
+Assuming you have Raspberry Pi 4 with the display connected to it, freshly installed the latest Raspberry Pi OS Lite (64 bit - bookworm) on an SD card, enabled Wi-Fi and SSH access, and opened a remote terminal to the board.
 
-### Install Application
+When logged into the Raspberry pi page the following command:
 
-Update OS and install required packages:
+    wget https://raw.githubusercontent.com/igfarm/roFrame/main/etc/install.sh
+   
+Inspect the script:
 
-    sudo apt update
-    sudo apt install -y git
+    less install.sh
 
-Install application:
+Run the script to do the installation:
 
-    mkdir ~/work
-    cd ~/work
-    git clone https://github.com/igfarm/roFrame
-    cd roFrame
-    python -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
+    bash ./install.sh
 
 
-Start the discovery program, and go to Roon extensions to approve it:
+When installation finishes, do the initial discovery to register the device with Roon:
 
-    cp .env.example .env
     ./venv/bin/python discovery.py
 
-Add a few images to the `pictures` folder. In my case, the panel I am using has a resolution of 1024x600, so pictures should be that size. If you don't do this step, you will be rewarded with some modern art on your frame.
 
-### Install and configure OS
+Optionally add a few images into the pictures directory:
 
-Install required packages:
+    ./venv/bin/python etc/get_images.py landscape
 
-    sudo apt update
-    sudo apt install -y xserver-xorg xinit chromium-browser unclutter x11-utils
 
-Create an `.xinit` file that `startx` will execute once it starts running:
-
-    cd ~/work/roFrame
-    cp etc/xinitrc  ~/.xinitrc
-    chmod +x ~/.xinitrc
-
-Install the application's service:
-
-    sudo cp etc/frame.service /lib/systemd/system/
-    sudo sed -i "s|PATH|$(pwd)|g" /lib/systemd/system/frame.service
-    sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/frame.service
-    sudo systemctl enable frame.service
-
-Install the kiosk service:
-
-    sudo cp etc/kiosk.service /lib/systemd/system/
-    sudo sed -i "s|USER|$(whoami)|g" /lib/systemd/system/kiosk.service
-    sudo systemctl enable kiosk.service
-
-If updating from a previous version:
-
-    sudo systemctl daemon-reload
-
-Allow `startx` to be started by a service:
-
-    sudo sed -i "s|allowed_users=console|allowed_users=anybody|g" /etc/X11/Xwrapper.config
-
-Reboot the Pi:
+After that completes, reboot the system:
 
     sudo reboot
 
-The frame should come up and you should see some pictures on the screen.
+Once system reboots, you can visit the following URL to update the settings:
+
+    http://<ipaddr>/settings
+
+
 
 ### Parameters in `.env` file
 
