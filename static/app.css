@@ -108,17 +108,25 @@ body {
   opacity: 1;
 }
 
+:root {
+  /* Default values for landscape mode */
+  --x-pixel: 1024;
+  --y-pixel: 600;
+  /* 16:9 aspect ratio */
+  --x-size: 217.5;
+  --y-size: 120;
+
+  --aspect-adjustment: calc((var(--x-pixel) / var(--y-pixel)) / (var(--x-size) / var(--y-size)));
+  --scale-zoom: 1.062;
+}
+
 /* =======================
    LANDSCAPE MODE
    ======================= */
 @media (min-aspect-ratio: 1/1) {
-
-  #clockCanvas {
-    transform: scaleY(1.05) scaleX(1.013)
-  }
-
-  .full-area img {
-    transform: scaleY(1.05) scaleX(1.013) translate(-50%, -50%)
+  :root {
+    --scale-x: calc(var(--aspect-adjustment) * var(--scale-zoom));
+    --scale-y: calc(1 * var(--scale-zoom));
   }
 }
 
@@ -126,6 +134,11 @@ body {
    PORTRAIT MODE
    ======================= */
 @media (max-aspect-ratio: 1/1) {
+  :root {
+    --scale-x: calc(1 * var(--scale-zoom));
+    --scale-y: calc(var(--aspect-adjustment) * var(--scale-zoom));
+  }
+
   .main-container {
     flex-direction: column;
     /* stack the sections vertically */
@@ -144,12 +157,12 @@ body {
     width: 100%;
     text-align: center;
   }
+}
 
-  #clockCanvas {
-    transform: scaleX(1.05) scaleY(1.013);
-  }
+#clockCanvas {
+  transform: scaleY(var(--scale-y)) scaleX(var(--scale-x));
+}
 
-  .full-area img {
-    transform: scaleX(1.05) scaleY(1.013) translate(-50%, -50%);
-  }
+.full-area img {
+  transform: translate(-50%, -50%) scaleY(var(--scale-y)) scaleX(var(--scale-x));
 }
