@@ -57,6 +57,9 @@ class Config:
         self.host = os.getenv("HOST", "0.0.0.0")
         self.port = int(os.getenv("PORT", 5006))
 
+        self.screen_width= os.getenv("SCREEN_WIDTH", "218.5")
+        self.screen_height = os.getenv("SCREEN_HEIGHT", "121")
+
         self._validate_config()
         logger.info("Configuration loaded successfully.")
 

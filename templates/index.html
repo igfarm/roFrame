@@ -48,6 +48,8 @@
     <script src="/static/app.js"></script>
     <script>
       window.onload = function () {
+        updateScalingVariables({{ screen_width }}, {{ screen_height }});
+        
         on_window_load(
           {{ slideshow_clock_ratio }},
           {{ transition_seconds }},

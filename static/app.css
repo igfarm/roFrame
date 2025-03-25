@@ -1,13 +1,13 @@
 @font-face {
   font-family: "Butler1";
-  src: url("static/fonts/Butler1/Butler1.ttf.woff");
+  src: url("fonts/Butler1/Butler1.ttf.woff");
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
   font-family: "Roboto";
-  src: url("/static/fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf");
+  src: url("fonts/Roboto/Roboto-VariableFont_wdth,wght.ttf");
   font-weight: normal;
   font-style: normal;
 }
@@ -109,14 +109,20 @@ body {
 }
 
 :root {
-  /* Default values for landscape mode */
+  /* Screen resolution */
   --x-pixel: 1024;
   --y-pixel: 600;
-  /* 16:9 aspect ratio */
+  /* Screen size (in mm) */
   --x-size: 217.5;
   --y-size: 120;
-
+  /* Aspect ratio adjustment */
   --aspect-adjustment: calc((var(--x-pixel) / var(--y-pixel)) / (var(--x-size) / var(--y-size)));
+  --scale-zoom: 1.062;
+}
+
+:root {
+  /* Aspect ratio adjustment */
+  --aspect-adjustment: calc(1/1.062);
   --scale-zoom: 1.062;
 }
 
@@ -126,7 +132,7 @@ body {
 @media (min-aspect-ratio: 1/1) {
   :root {
     --scale-x: calc(var(--aspect-adjustment) * var(--scale-zoom));
-    --scale-y: calc(1 * var(--scale-zoom));
+    --scale-y: calc(var(--scale-zoom));
   }
 }
 
@@ -135,7 +141,7 @@ body {
    ======================= */
 @media (max-aspect-ratio: 1/1) {
   :root {
-    --scale-x: calc(1 * var(--scale-zoom));
+    --scale-x: calc(var(--scale-zoom));
     --scale-y: calc(var(--aspect-adjustment) * var(--scale-zoom));
   }
 

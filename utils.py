@@ -68,6 +68,8 @@ def validate_settings_form_data(form):
             "CLOCK_SIZE": str(clock_size),
             "CLOCK_OFFSET": str(clock_offset),
             "LOCK_SETTINGS": lock_settings,
+            "SCREEN_WIDTH": form.get("SCREEN_WIDTH", "218.5"),
+            "SCREEN_HEIGHT": form.get("SCREEN_HEIGHT", "121"),
         }
     except ValueError as e:
         logger.error(f"Invalid input: {e}")

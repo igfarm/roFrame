@@ -135,6 +135,8 @@ def index():
         slideshow_clock_ratio=config.slideshow_clock_ratio,
         clock_size=config.clock_size,
         clock_offset=config.clock_offset,
+        screen_width=config.screen_width,
+        screen_height=config.screen_height,
     )
 
 
@@ -286,6 +288,13 @@ def init():
             logger.error(f"Error during registration: {e}")
             return jsonify({"error": str(e)}), 400
 
+
+@app.route("/favicon.ico")
+def favicon():
+    """Serve the favicon."""
+    return send_from_directory(
+        os.path.join(app.root_path, "static"), "favicon.ico", mimetype="image/vnd.microsoft.icon"
+    )
 
 @app.route("/shutdown", methods=["POST", "GET"])
 def shutdown():

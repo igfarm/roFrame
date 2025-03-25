@@ -55,6 +55,51 @@ function getFonteSize(
   return bestFit;
 }
 
+function updateScalingVariables(xSize = 1024, ySize = 600) {
+  const root = document.documentElement;
+
+  console.log("xsize: " + xSize);
+  console.log("ysize: " + ySize);
+
+  // Swap dimensions for portrait mode
+  if (screen.width < screen.height) {
+    const temp = xSize;
+    xSize = ySize;
+    ySize = temp
+  }
+
+  // Get screen resolution in real pixels
+  const xPixel = screen.width * window.devicePixelRatio;
+  const yPixel = screen.height * window.devicePixelRatio;
+
+  // Aspect correction for non-square pixels
+  const pixelAspect = xPixel / yPixel;
+  const physicalAspect = xSize / ySize;
+  const aspectAdjustment = pixelAspect / physicalAspect;
+
+  // Get actual screen dimensions in CSS pixels
+  const screenWidth = window.innerWidth;
+  const screenHeight = window.innerHeight;
+  const screenAspect = screenWidth / screenHeight;
+  const imageAspect = pixelAspect / aspectAdjustment;
+
+  // Compute zoom to fill screen
+  const scaleZoom = screenAspect > imageAspect
+    ? screenWidth / (screenHeight * imageAspect)
+    : screenHeight / (screenWidth / imageAspect);
+
+  // Update CSS variables
+  root.style.setProperty('--aspect-adjustment', aspectAdjustment);
+  root.style.setProperty('--scale-zoom', scaleZoom);
+  root.style.setProperty('--scale-x', aspectAdjustment * scaleZoom);
+  root.style.setProperty('--scale-y', scaleZoom);
+
+  console.log("Aspect ratio: " + root.style.getPropertyValue('--aspect-adjustment'));
+  console.log("Scale zoom: " + root.style.getPropertyValue('--scale-zoom'));
+  console.log("Scale x: " + root.style.getPropertyValue('--scale-x'));
+  console.log("Scale y: " + root.style.getPropertyValue('--scale-y'));
+}
+
 function on_window_load(
   slideshow_clock_ratio,
   transition_seconds,
