@@ -1,7 +1,4 @@
 var socket = io.connect(location.hostname + ":" + location.port);
-socket.on("connection", function () {
-  console.log("Socket connected");
-});
 
 function show_row(id) {
   console.log("Showing row:", id);
@@ -12,72 +9,6 @@ function show_row(id) {
   if (id !== null) document.getElementById(id).classList.remove("d-none");
 }
 
-// Trigger initial album update
-setTimeout(function () {
-  console.log("Triggering album update");
-  socket.emit("trigger_album_update");
-}, 2000);
-
-socket.on("album_update", function (data) {
-  console.log("Album update received:", data);
-
-  if (data.url !== undefined) {
-    console.log("updating album");
-
-    console.log(data.state);
-    if (data.state === "playing") {
-      document.getElementById("album-artist").style.fontSize = "1px";
-      document.getElementById("album-title").style.fontSize = "1px";
-      document.getElementById("album-track").style.fontSize = "1px";
-
-      document.getElementById("album-info").classList.remove("d-none");
-      document.getElementById("album-img").src = data.url;
-      document.getElementById("album-artist").innerText = data.artist;
-      document.getElementById("album-title").innerText = data.title;
-      document.getElementById("album-track").innerText = data.track;
-
-      let size = getFonteSize(
-        document.getElementById("album-artist").innerText,
-        40,
-        80,
-      );
-      document.getElementById("album-artist").style.fontSize = size + "px";
-
-      let size2 = getFonteSize(
-        document.getElementById("album-title").innerText,
-        30,
-        40,
-      );
-      let size3 = getFonteSize(
-        document.getElementById("album-track").innerText,
-        30,
-        40,
-      );
-      size = Math.min(size2, size3);
-      document.getElementById("album-title").style.fontSize = size + "px";
-      document.getElementById("album-track").style.fontSize = size + "px";
-    }
-  }
-
-  if (data.display_state !== undefined && data.display_state === false) {
-    show_row(null);
-  } else if (data.state === "playing" || data.state === "loading") {
-    console.log("showing album");
-    show_row("album");
-    slideshow.setShowAlbum(true);
-  } else {
-    console.log("showing slideshow");
-    slideshow.setShowAlbum(false);
-  }
-});
-
-socket.on("response", function (data) {
-  console.log("Response received:", data);
-});
-
-socket.on("disconnect", function () {
-  console.log("Socket disconnected");
-});
 
 function getFonteSize(
   text,
@@ -135,6 +66,78 @@ function on_window_load(
     slideshowClockRatio: slideshow_clock_ratio,
     transitionSeconds: transition_seconds,
   });
+
+  socket.on("connection", function () {
+    console.log("Socket connected");
+
+    // Trigger initial album update
+    setTimeout(function () {
+      console.log("Triggering album update");
+      socket.emit("trigger_album_update");
+    }, 2000);
+  });
+
+  socket.on("album_update", function (data) {
+    console.log("Album update received:", data);
+
+    if (data.url !== undefined) {
+      console.log("updating album");
+
+      console.log(data.state);
+      if (data.state === "playing") {
+        document.getElementById("album-artist").style.fontSize = "1px";
+        document.getElementById("album-title").style.fontSize = "1px";
+        document.getElementById("album-track").style.fontSize = "1px";
+
+        document.getElementById("album-info").classList.remove("d-none");
+        document.getElementById("album-img").src = data.url;
+        document.getElementById("album-artist").innerText = data.artist;
+        document.getElementById("album-title").innerText = data.title;
+        document.getElementById("album-track").innerText = data.track;
+
+        let size = getFonteSize(
+          document.getElementById("album-artist").innerText,
+          40,
+          80,
+        );
+        document.getElementById("album-artist").style.fontSize = size + "px";
+
+        let size2 = getFonteSize(
+          document.getElementById("album-title").innerText,
+          30,
+          40,
+        );
+        let size3 = getFonteSize(
+          document.getElementById("album-track").innerText,
+          30,
+          40,
+        );
+        size = Math.min(size2, size3);
+        document.getElementById("album-title").style.fontSize = size + "px";
+        document.getElementById("album-track").style.fontSize = size + "px";
+      }
+    }
+
+    if (data.display_state !== undefined && data.display_state === false) {
+      show_row(null);
+    } else if (data.state === "playing" || data.state === "loading") {
+      console.log("showing album");
+      show_row("album");
+      slideshow.setShowAlbum(true);
+    } else {
+      console.log("showing slideshow");
+      slideshow.setShowAlbum(false);
+    }
+  });
+
+  socket.on("response", function (data) {
+    console.log("Response received:", data);
+  });
+
+  socket.on("disconnect", function () {
+    console.log("Socket disconnected");
+  });
+
 
   // Start the clock
   if (slideshow_clock_ratio > 0) {

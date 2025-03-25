@@ -72,18 +72,21 @@ body {
   position: relative;
   /* for absolutely-positioned img if needed */
   overflow: hidden;
-  width: 100%;
-  /* We'll define width/height differently in portrait vs. landscape */
+  width: 100vw;
+  height: 100vh;
 }
 
 .full-area img {
-  object-fit: contain;
   position: absolute;
+  object-fit: cover;
   opacity: 0;
   transition: opacity 1s ease-in-out;
-
   display: block;
-  /* removes inline gap */
+  width: 100%;
+  height: 100%;
+
+  left: 50%;
+  top: 50%;
 }
 
 #album-artist {
@@ -110,16 +113,12 @@ body {
    ======================= */
 @media (min-aspect-ratio: 1/1) {
 
-  /* Full container that holds the <img> */
-  .full-area {
-    width: 100%;
-    /* We'll define width/height differently in portrait vs. landscape */
+  #clockCanvas {
+    transform: scaleY(1.05) scaleX(1.013)
   }
 
   .full-area img {
-    width: 100%;
-    top: 50%;
-    transform: translateY(-50%);
+    transform: scaleY(1.05) scaleX(1.013) translate(-50%, -50%)
   }
 }
 
@@ -146,16 +145,11 @@ body {
     text-align: center;
   }
 
-  .full-area {
-    width: 100%;
-    /* fill screen width */
-    height: 100vh;
-    /* force square by matching viewport width */
+  #clockCanvas {
+    transform: scaleX(1.05) scaleY(1.013);
   }
 
   .full-area img {
-    height: 100%;
-    left: 50%;
-    transform: translateX(-50%);
+    transform: scaleX(1.05) scaleY(1.013) translate(-50%, -50%);
   }
 }
