@@ -198,6 +198,8 @@ def settings():
         "DISPLAY_ON_HOUR": str(config.display_on_hour),
         "DISPLAY_OFF_HOUR": str(config.display_off_hour),
         "DISPLAY_CONTROL": config.display_control,
+        "SCREEN_WIDTH": config.screen_width,
+        "SCREEN_HEIGHT": config.screen_height,
         "SLIDESHOW": "on" if config.slideshow_enabled else "off",
         "SLIDESHOW_FOLDER": config.slideshow_folder,
         "SLIDESHOW_TRANSITION_SECONDS": str(config.slideshow_transition_seconds),
