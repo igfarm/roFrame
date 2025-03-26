@@ -112,6 +112,11 @@ def index():
     """Render the main index page."""
     if not config.dot_env_exists():
         return redirect(url_for("init"))
+    
+    # chech if access from 127.0.0.1
+    host = request.host.split(':')[0]
+    if host not in ["127.0.0.1", "localhost"] and not config.allow_remote:
+        return redirect(url_for("settings"))
 
     images = []
     art_images = []
