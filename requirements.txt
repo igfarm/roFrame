@@ -8,3 +8,4 @@ Pillow==11.1.0
 sdnotify==0.3.2
 qrcode==8.0
 requests==2.32.3
+tzdata==2025.2
