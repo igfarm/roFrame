@@ -12,129 +12,151 @@
             <div class="col-12 col-sm-10 col-md-8 col-lg-6">
                 <h1>roFrame Settings</h1>
                 <form method="POST" action="/settings">
-                    <div class="card mb-4">
-                        <div class="card-header">
-                        Device
+                    <div class="accordion accordion-flush" id="settingsAccordion">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="deviceHeading">
+                                <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#deviceCollapse" aria-expanded="true" aria-controls="deviceCollapse">
+                                    Device
+                                </button>
+                            </h2>
+                            <div id="deviceCollapse" class="accordion-collapse collapse show" aria-labelledby="deviceHeading" data-bs-parent="#settingsAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="NAME" class="form-label">Name</label>
+                                        <input type="text" disabled class="form-control" id="NAME" name="NAME" value="{{ env.NAME }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="ROON_ZONE" class="form-label">Roon Zone</label>
+                                        <select class="form-select" id="ROON_ZONE" name="ROON_ZONE">
+                                            {% for zone in env.AVAILABLE_ZONES %}
+                                            <option value="{{ zone }}" {% if env.ROON_ZONE == zone %}selected{% endif %}>{{ zone }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="LOCK_SETTINGS" name="LOCK_SETTINGS" value="on">
+                                        <label class="form-check-label" for="LOCK_SETTINGS">Lock Settings</label>
+                                        <small class="text-danger d-block">Warning: This will prevent further changes.</small>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="NAME" class="form-label">Name</label>
-                                <input type="text" disabled class="form-control" id="NAME" name="NAME" value="{{ env.NAME }}">
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="displayHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#displayCollapse" aria-expanded="false" aria-controls="displayCollapse">
+                                    Display
+                                </button>
+                            </h2>
+                            <div id="displayCollapse" class="accordion-collapse collapse" aria-labelledby="displayHeading" data-bs-parent="#settingsAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="DISPLAY_CONTROL" class="form-label">Control</label>
+                                        <select class="form-select" id="DISPLAY_CONTROL" name="DISPLAY_CONTROL">
+                                            <option value="on" {% if env.DISPLAY_CONTROL == "on" %}selected{% endif %}>On</option>
+                                            <option value="off" {% if env.DISPLAY_CONTROL == "off" %}selected{% endif %}>Off</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="DISPLAY_ON_HOUR" class="form-label">On Hour</label>
+                                        <input type="number" class="form-control" id="DISPLAY_ON_HOUR" name="DISPLAY_ON_HOUR" value="{{ env.DISPLAY_ON_HOUR }}" min="0" max="23">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="DISPLAY_OFF_HOUR" class="form-label">Off Hour</label>
+                                        <input type="number" class="form-control" id="DISPLAY_OFF_HOUR" name="DISPLAY_OFF_HOUR" value="{{ env.DISPLAY_OFF_HOUR }}" min="0" max="23">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mb-3">
-                                <label for="ROON_ZONE" class="form-label">Roon Zone</label>
-                                <select class="form-select" id="ROON_ZONE" name="ROON_ZONE">
-                                    {% for zone in env.AVAILABLE_ZONES %}
-                                    <option value="{{ zone }}" {% if env.ROON_ZONE == zone %}selected{% endif %}>{{ zone }}</option>
-                                    {% endfor %}
-                                </select>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="slideshowHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#slideshowCollapse" aria-expanded="false" aria-controls="slideshowCollapse">
+                                    Slideshow
+                                </button>
+                            </h2>
+                            <div id="slideshowCollapse" class="accordion-collapse collapse" aria-labelledby="slideshowHeading" data-bs-parent="#settingsAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="SLIDESHOW" class="form-label">Enable Slideshow</label>
+                                        <select class="form-select" id="SLIDESHOW" name="SLIDESHOW">
+                                            <option value="on" {% if env.SLIDESHOW == "on" %}selected{% endif %}>On</option>
+                                            <option value="off" {% if env.SLIDESHOW == "off" %}selected{% endif %}>Off</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="SLIDESHOW_FOLDER" class="form-label">Folder</label>
+                                        <input type="text" disabled class="form-control" id="SLIDESHOW_FOLDER" name="SLIDESHOW_FOLDER" value="{{ env.SLIDESHOW_FOLDER }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="SLIDESHOW_TRANSITION_SECONDS" class="form-label">Transition Seconds</label>
+                                        <input type="number" class="form-control" id="SLIDESHOW_TRANSITION_SECONDS" name="SLIDESHOW_TRANSITION_SECONDS" value="{{ env.SLIDESHOW_TRANSITION_SECONDS }}">
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="LOCK_SETTINGS" name="LOCK_SETTINGS" value="on">
-                                <label class="form-check-label" for="LOCK_SETTINGS">Lock Settings</label>
-                                <small class="text-danger d-block">Warning: This will prevent further changes.</small>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="clockHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#clockCollapse" aria-expanded="false" aria-controls="clockCollapse">
+                                    Clock
+                                </button>
+                            </h2>
+                            <div id="clockCollapse" class="accordion-collapse collapse" aria-labelledby="clockHeading" data-bs-parent="#settingsAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="SLIDESHOW_CLOCK_RATIO" class="form-label">Show Clock %</label>
+                                        <input type="number" class="form-control" id="SLIDESHOW_CLOCK_RATIO" name="SLIDESHOW_CLOCK_RATIO" value="{{ env.SLIDESHOW_CLOCK_RATIO }}" min="0" max="100">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="CLOCK_SIZE" class="form-label">Clock Size</label>
+                                        <input type="number" class="form-control" id="CLOCK_SIZE" name="CLOCK_SIZE" value="{{ env.CLOCK_SIZE }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="CLOCK_OFFSET" class="form-label">Clock Offset</label>
+                                        <input type="number" class="form-control" id="CLOCK_OFFSET" name="CLOCK_OFFSET" value="{{ env.CLOCK_OFFSET }}">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="screenHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#screenCollapse" aria-expanded="false" aria-controls="screenCollapse">
+                                    Screen
+                                </button>
+                            </h2>
+                            <div id="screenCollapse" class="accordion-collapse collapse" aria-labelledby="screenHeading" data-bs-parent="#settingsAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="SCREEN_WIDTH" class="form-label">Width</label>
+                                        <input type="number" class="form-control" id="SCREEN_WIDTH" name="SCREEN_WIDTH" value="{{ env.SCREEN_WIDTH }}" min="0" max="4000">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="SCREEN_HEIGHT" class="form-label">Height</label>
+                                        <input type="text" class="form-control" id="SCREEN_HEIGHT" name="SCREEN_HEIGHT" value="{{ env.SCREEN_HEIGHT }}" min="0" max="4000">
+                                    </div>
+                                    <small class="text-secondary d-block">Used to adjust the aspect ratio of your screen in case pixels are not square.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="networkHeading">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#networkCollapse" aria-expanded="false" aria-controls="networkCollapse">
+                                    Network
+                                </button>
+                            </h2>
+                            <div id="networkCollapse" class="accordion-collapse collapse" aria-labelledby="networkHeading" data-bs-parent="#settingsAccordion">
+                                <div class="accordion-body">
+                                    <div class="mb-3">
+                                        <label for="HOST" class="form-label">Host</label>
+                                        <input type="text" disabled class="form-control" id="HOST" name="HOST" value="{{ env.HOST }}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="PORT" class="form-label">Port</label>
+                                        <input type="number" disabled class="form-control" id="PORT" name="PORT" value="{{ env.PORT }}">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-
-                    <div class="card mb-4">
-                        <div class="card-header">
-                        Display
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="DISPLAY_CONTROL" class="form-label">Control</label>
-                                <select class="form-select" id="DISPLAY_CONTROL" name="DISPLAY_CONTROL">
-                                    <option value="on" {% if env.DISPLAY_CONTROL == "on" %}selected{% endif %}>On</option>
-                                    <option value="off" {% if env.DISPLAY_CONTROL == "off" %}selected{% endif %}>Off</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="DISPLAY_ON_HOUR" class="form-label">On Hour</label>
-                                <input type="number" class="form-control" id="DISPLAY_ON_HOUR" name="DISPLAY_ON_HOUR" value="{{ env.DISPLAY_ON_HOUR }}" min="0" max="23">
-                            </div>
-                            <div class="mb-3">
-                                <label for="DISPLAY_OFF_HOUR" class="form-label">Off Hour</label>
-                                <input type="number" class="form-control" id="DISPLAY_OFF_HOUR" name="DISPLAY_OFF_HOUR" value="{{ env.DISPLAY_OFF_HOUR }}" min="0" max="23">
-                            </div>
-                        </div>
-                    </div>  
-                    <div class="card mb-4">
-                        <div class="card-header">
-                        Slideshow
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="SLIDESHOW" class="form-label">Enable Slideshow</label>
-                                <select class="form-select" id="SLIDESHOW" name="SLIDESHOW">
-                                    <option value="on" {% if env.SLIDESHOW == "on" %}selected{% endif %}>On</option>
-                                    <option value="off" {% if env.SLIDESHOW == "off" %}selected{% endif %}>Off</option>
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="SLIDESHOW_FOLDER" class="form-label">Folder</label>
-                                <input type="text" disabled class="form-control" id="SLIDESHOW_FOLDER" name="SLIDESHOW_FOLDER" value="{{ env.SLIDESHOW_FOLDER }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="SLIDESHOW_TRANSITION_SECONDS" class="form-label">Transition Seconds</label>
-                                <input type="number" class="form-control" id="SLIDESHOW_TRANSITION_SECONDS" name="SLIDESHOW_TRANSITION_SECONDS" value="{{ env.SLIDESHOW_TRANSITION_SECONDS }}">
-                            </div>
-                        </div>  
-                    </div>
-                    <div class="card mb-4">
-                        <div class="card-header">
-                        Clock
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="SLIDESHOW_CLOCK_RATIO" class="form-label">Show Clock %</label>
-                                <input type="number" class="form-control" id="SLIDESHOW_CLOCK_RATIO" name="SLIDESHOW_CLOCK_RATIO" value="{{ env.SLIDESHOW_CLOCK_RATIO }}" min="0" max="100">
-                            </div>
-                            <div class="mb-3">
-                                <label for="CLOCK_SIZE" class="form-label">Clock Size</label>
-                                <input type="number" class="form-control" id="CLOCK_SIZE" name="CLOCK_SIZE" value="{{ env.CLOCK_SIZE }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="CLOCK_OFFSET" class="form-label">Clock Offset</label>
-                                <input type="number" class="form-control" id="CLOCK_OFFSET" name="CLOCK_OFFSET" value="{{ env.CLOCK_OFFSET }}">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card mb-4">
-                        <div class="card-header">
-                        Screen
-                        </div>
-                        <div class="card-body">
-                            <div class="mb-3">
-                                <label for="SCREEN_WIDTH" class="form-label">Width</label>
-                                <input type="number" class="form-control" id="SCREEN_WIDTH" name="SCREEN_WIDTH" value="{{ env.SCREEN_WIDTH }}" min="1" max="4000">
-                            </div>
-                            <div class="mb-3">
-                                <label for="SCREEN_HEIGHT" class="form-label">Height</label>
-                                <input type="text" class="form-control" id="SCREEN_HEIGHT" name="SCREEN_HEIGHT" value="{{ env.SCREEN_HEIGHT }}" min="1" max="4000">
-                            </div>
-                            <small class="text-secondary d-block">Used to adjust the aspect ratio of your screen in case pixels are not square.</small>
-                        </div>
-                    </div>  
-                    
-                    <div class="card mb-4">
-                        <div class="card-header">
-                        Network
-                        </div>
-                        <div class="card-body">
-
-                            <div class="mb-3">
-                                <label for="HOST" class="form-label">Host</label>
-                                <input type="text" disabled class="form-control" id="HOST" name="HOST" value="{{ env.HOST }}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="PORT" class="form-label">Port</label>
-                                <input type="number" disabled class="form-control" id="PORT" name="PORT" value="{{ env.PORT }}">
-                            </div>         
-
-                        </div>
-                    </div>
-                    <div class="d-flex justify-content-between">
+                    <div class="d-flex justify-content-end mt-3">
                         <button type="submit" class="btn btn-primary">Save</button>
                     </div>
                 </form>
