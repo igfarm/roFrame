@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# make sure we are on a raspberry pi
+if ...
+
 # Update package lists and install Git
 sudo apt update
 sudo apt install -y git xserver-xorg xinit chromium-browser unclutter x11-utils
@@ -14,8 +17,8 @@ source venv/bin/activate
 pip install -r requirements.txt
 
 # Configure X11 startup script
-cp etc/xinitrc  ~/.xinitrc
-chmod +x ~/.xinitrc
+rm ~/.xinint
+ln -s $(pwd)/etc/xinitrc  ~/.xinitrc
 
 # Create and enable the frame service
 sudo cp etc/frame.service /lib/systemd/system/
