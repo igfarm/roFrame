@@ -47,32 +47,8 @@ After that completes, reboot the system:
 
 Once system reboots, you can visit the following URL to update the settings:
 
-    http://<ipaddr>/settings
+    http://<ipaddr>/
 
-
-
-### Parameters in `.env` file
-
-The application requires the following environment variables to be set.
-
-| Variable Name                  | Description                                | Required | Possible Values                                                                               | Default            |
-| ------------------------------ | ------------------------------------------ | -------- | --------------------------------------------------------------------------------------------- | ------------------ |
-| `CLOCK_SIZE`                   | Diameter of clock in pixels                | No       | `0` means autosize.                                                                           | `0`                |
-| `CLOCK_OFFSET`                 | Clock offset pixels from top of the screen | No       | `0` means autosize.                                                                           | `0`                |
-| `DISPLAY_CONTROL`              | Enables or disables display control        | No       | `on`, `off`                                                                                   | `on`               |
-| `DISPLAY_OFF_HOUR`             | Hour to turn off the display               | No       | `0-23` (e.g., `22`)                                                                           | `22`               |
-| `DISPLAY_ON_HOUR`              | Hour to turn on the display                | No       | `0-23` (e.g., `10`)                                                                           | `10`               |
-| `IMAGE_SIZE`                   | Album image size in pixels                 | No       | Any number (e.g., `600`)                                                                      | `600`              |
-| `NAME`                         | Unique device name                         | Yes      | Any string (e.g., `Display`)                                                                  |                    |
-| `PORT`                         | Application port                           | No       | Any number (e.g., `5006`)                                                                     | `5006`             |
-| `ROON_API_KEY_FNAME`           | Filename for Roon API key                  | No       | Any filename                                                                                  | `roon_api_key.txt` |
-| `ROON_CORE_ID_FNAME`           | Filename for Roon Core ID                  | No       | Any filename                                                                                  | `roon_core_id.txt` |
-| `ROON_ZONE`                    | Roon zone name                             | Yes      | Any string (e.g., `Livingroom`)                                                               |                    |
-| `SLIDESHOW`                    | Enables or disables slideshow              | No       | `on`, `off`                                                                                   | `on`               |
-| `SLIDESHOW_FOLDER`             | Folder path for slideshow images           | No       | Any folder path (e.g., `./pictures`)                                                          | `./pictures`       |
-| `SLIDESHOW_TRANSITION_SECONDS` | Time per slide transition (seconds)        | No       | Any number (e.g., `15`)                                                                       | `0`                |
-| `SLIDESHOW_CLOCK_RATIO`        | How often to show the clock                | No       | `0-100` (`0` is never, `100` is always)                                                       | `0`                |
-| `TZ`                           | Timezone setting                           | No       | Valid timezone, see [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) | `America/New_York` |
 
 ### Sample Configuations
 
@@ -111,6 +87,30 @@ You can get free art to display in your frame, complements of the [Art Institute
 show in your frame:
 
     ./venv/bin/python etc/get_art.py landscape
+
+### Parameters in `.env` file
+
+The application requires the following environment variables to be set.
+
+| Variable Name                  | Description                                | Required | Possible Values                                                                               | Default            |
+| ------------------------------ | ------------------------------------------ | -------- | --------------------------------------------------------------------------------------------- | ------------------ |
+| `CLOCK_SIZE`                   | Diameter of clock in pixels                | No       | `0` means autosize.                                                                           | `0`                |
+| `CLOCK_OFFSET`                 | Clock offset pixels from top of the screen | No       | `0` means autosize.                                                                           | `0`                |
+| `DISPLAY_CONTROL`              | Enables or disables display control        | No       | `on`, `off`                                                                                   | `on`               |
+| `DISPLAY_OFF_HOUR`             | Hour to turn off the display               | No       | `0-23` (e.g., `22`)                                                                           | `22`               |
+| `DISPLAY_ON_HOUR`              | Hour to turn on the display                | No       | `0-23` (e.g., `10`)                                                                           | `10`               |
+| `IMAGE_SIZE`                   | Album image size in pixels                 | No       | Any number (e.g., `600`)                                                                      | `600`              |
+| `NAME`                         | Unique device name                         | Yes      | Any string (e.g., `Display`)                                                                  |                    |
+| `PORT`                         | Application port                           | No       | Any number (e.g., `5006`)                                                                     | `5006`             |
+| `ROON_API_KEY_FNAME`           | Filename for Roon API key                  | No       | Any filename                                                                                  | `roon_api_key.txt` |
+| `ROON_CORE_ID_FNAME`           | Filename for Roon Core ID                  | No       | Any filename                                                                                  | `roon_core_id.txt` |
+| `ROON_ZONE`                    | Roon zone name                             | Yes      | Any string (e.g., `Livingroom`)                                                               |                    |
+| `SLIDESHOW`                    | Enables or disables slideshow              | No       | `on`, `off`                                                                                   | `on`               |
+| `SLIDESHOW_FOLDER`             | Folder path for slideshow images           | No       | Any folder path (e.g., `./pictures`)                                                          | `./pictures`       |
+| `SLIDESHOW_TRANSITION_SECONDS` | Time per slide transition (seconds)        | No       | Any number (e.g., `15`)                                                                       | `0`                |
+| `SLIDESHOW_CLOCK_RATIO`        | How often to show the clock                | No       | `0-100` (`0` is never, `100` is always)                                                       | `0`                |
+| `TZ`                           | Timezone setting                           | No       | Valid timezone, see [Wikipedia](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) | `America/New_York` |
+
 
 ## Debugging
 
