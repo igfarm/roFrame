@@ -16,8 +16,10 @@ class Config:
             self.name = None
             load_dotenv()
 
+            self.roon = "yes"
             self.port = 5006
             self.host = "0.0.0.0"
+            self.slideshow_folder = None
         except Exception as e:
             logger.error(f"Error loading .env file: {e}")
             raise
@@ -40,6 +42,7 @@ class Config:
         # Load environment variables
         self.my_tz = zoneinfo.ZoneInfo(os.getenv("TZ", "America/New_York"))
         self.name = os.getenv("NAME", "")
+        self.roon = os.getenv("ROON", "yes") == "yes"
         self.display_on_hour = int(os.getenv("DISPLAY_ON_HOUR", 9))
         self.display_off_hour = int(os.getenv("DISPLAY_OFF_HOUR", 23))
         self.display_control = os.getenv("DISPLAY_CONTROL", "off")
@@ -58,7 +61,7 @@ class Config:
         self.port = int(os.getenv("PORT", 5006))
         self.allow_remote = os.getenv("ALLOW_REMOTE", "off") == "on"
 
-        self.screen_width= os.getenv("SCREEN_WIDTH", "218.5")
+        self.screen_width = os.getenv("SCREEN_WIDTH", "218.5")
         self.screen_height = os.getenv("SCREEN_HEIGHT", "121")
 
         self._validate_config()
@@ -69,8 +72,10 @@ class Config:
         if not self.name:
             logger.warning("NAME environment variable is not set.")
         if not os.path.isdir(self.slideshow_folder):
+            print(
+                f"Slideshow folder does not exist: {self.slideshow_folder}")
             logger.warning(f"Slideshow folder does not exist: {self.slideshow_folder}")
-
+        print("bar")
     def save(self, updates):
         """Update the .env file with new values."""
         logger.info("Updating .env file with new settings.")

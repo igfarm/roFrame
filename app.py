@@ -82,18 +82,19 @@ def background_thread():
     """A background thread that emits a message every 10 minutes."""
     while not thread_stop_event.is_set():
         try:
-            myRoonApi = getRoonApi()
-            album = myRoonApi.get_zone_data()
-            state = album.get("state")
-            current_hour = datetime.now().astimezone(config.my_tz).hour
+            if config.roon:
+                myRoonApi = getRoonApi()
+                album = myRoonApi.get_zone_data()
+                state = album.get("state")
+                current_hour = datetime.now().astimezone(config.my_tz).hour
 
-            # Turn off screen during certain hours
-            if state in ["playing", "loading"] or is_screen_on(
-                current_hour, config.display_on_hour, config.display_off_hour
-            ):
-                display(True)
-            else:
-                display(False)
+                # Turn off screen during certain hours
+                if state in ["playing", "loading"] or is_screen_on(
+                    current_hour, config.display_on_hour, config.display_off_hour
+                ):
+                    display(True)
+                else:
+                    display(False)
 
             # Wait for 600 seconds or until the thread_stop_event is set
             thread_stop_event.wait(600)
@@ -112,9 +113,9 @@ def index():
     """Render the main index page."""
     if not config.dot_env_exists():
         return redirect(url_for("init"))
-    
+
     # chech if access from 127.0.0.1
-    host = request.host.split(':')[0]
+    host = request.host.split(":")[0]
     if host not in ["127.0.0.1", "localhost"] and not config.allow_remote:
         return redirect(url_for("settings"))
 
@@ -216,9 +217,10 @@ def settings():
     }
 
     # Pass along the current selected zone and a list of available zones
-    available_zones = myRoonApi.get_zone_list()
-    current_env["ROON_ZONE"] = os.getenv("ROON_ZONE", "")
-    current_env["AVAILABLE_ZONES"] = available_zones
+    if config.roon:
+        available_zones = myRoonApi.get_zone_list()
+        current_env["ROON_ZONE"] = os.getenv("ROON_ZONE", "")
+        current_env["AVAILABLE_ZONES"] = available_zones
 
     return render_template("settings.html", env=current_env)
 
@@ -239,7 +241,11 @@ def init():
             ):  # Check if running on Raspberry Pi
                 logger.info("Generating QR code for Raspberry Pi")
                 while not external_ip:
-                    external_ip = subprocess.check_output( ["hostname", "-I"], text=True).strip().split()[0]  # Get the first IP address
+                    external_ip = (
+                        subprocess.check_output(["hostname", "-I"], text=True)
+                        .strip()
+                        .split()[0]
+                    )  # Get the first IP address
                     time.sleep(1)
 
                 logger.info(f"External IP: {external_ip}")
@@ -258,9 +264,7 @@ def init():
         except Exception as e:
             logger.error(f"Error retrieving external IP or generating QR code: {e}")
 
-        return render_template(
-            "init.html", url=url, qr_code=qr_code_base64
-        )
+        return render_template("init.html", url=url, qr_code=qr_code_base64)
 
     else:
         name = request.form.get("NAME", "").strip()
@@ -286,7 +290,7 @@ def init():
                     "ROON_ZONE": available_zones[0] if available_zones else "",
                 }
             )
-            
+
             restart()
 
             return jsonify({"message": "Registration successful"}), 200
@@ -300,8 +304,11 @@ def init():
 def favicon():
     """Serve the favicon."""
     return send_from_directory(
-        os.path.join(app.root_path, "static"), "favicon.ico", mimetype="image/vnd.microsoft.icon"
+        os.path.join(app.root_path, "static"),
+        "favicon.ico",
+        mimetype="image/vnd.microsoft.icon",
     )
+
 
 @app.route("/shutdown", methods=["POST", "GET"])
 def shutdown():
@@ -372,20 +379,21 @@ if __name__ == "__main__":
     # Fix any old configuration issues
     config.migrage_legacy()
 
-    # Check if the Roon token file exists
-    if not config.dot_env_exists() or not myRoonApi.check_auth():
-        # Notify systemd that the service is ready
-        n = sdnotify.SystemdNotifier()
-        n.notify("READY=1")
+    if config.roon:
+        # Check if the Roon token file exists
+        if not config.dot_env_exists() or not myRoonApi.check_auth():
+            # Notify systemd that the service is ready
+            n = sdnotify.SystemdNotifier()
+            n.notify("READY=1")
 
-        logger.info("Roon token file not found. Redirecting to /init.")
-        app.run(debug=False, port=config.port, host=config.host)
-        os._exit(0)  # Forcefully exit the application
+            logger.info("Roon token file not found. Redirecting to /init.")
+            app.run(debug=False, port=config.port, host=config.host)
+            os._exit(0)  # Forcefully exit the application
 
-    # start the Roon
-    if not myRoonApi.connect(notify_clients=notify_clients):
-        logger.error("Unable to connect to Roon")
-        os._exit(0)  # Forcefully exit the application
+        # start the Roon
+        if not myRoonApi.connect(notify_clients=notify_clients):
+            logger.error("Unable to connect to Roon")
+            os._exit(0)  # Forcefully exit the application
 
     # Notify systemd that the service is ready
     n = sdnotify.SystemdNotifier()

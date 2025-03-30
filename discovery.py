@@ -1,6 +1,6 @@
 import os
 from myroonapi import MyRoonApi
-from config import Config  # Import the Config class
+from config import Config
 
 config = Config()
 
