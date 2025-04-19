@@ -37,6 +37,13 @@ class TestMyRoonApi(unittest.TestCase):
             self.assertEqual(os.environ["ROON_CORE_ID"], "test_core_id")
 
 
+    @patch("os.environ", new_callable=dict)
+    def test_init_raises_exception_when_name_not_set(self, mock_environ):
+        mock_environ.pop("NAME", None)  # Simulate NAME not being set
+        with self.assertRaises(KeyError) as context:
+            MyRoonApi()
+        print(context.exception)
+        self.assertEqual(str(context.exception), "'NAME environment variable must be set and have unique name for this device'")
 
     @patch("myroonapi.RoonDiscovery")
     def test_register(self, mock_discovery):

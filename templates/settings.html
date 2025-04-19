@@ -44,7 +44,7 @@
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="displayHeading">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#displayCollapse" aria-expanded="false" aria-controls="displayCollapse">
-                                    Display
+                                    Display Control
                                 </button>
                             </h2>
                             <div id="displayCollapse" class="accordion-collapse collapse" aria-labelledby="displayHeading" data-bs-parent="#settingsAccordion">
@@ -119,14 +119,14 @@
                         <div class="accordion-item">
                             <h2 class="accordion-header" id="screenHeading">
                                 <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#screenCollapse" aria-expanded="false" aria-controls="screenCollapse">
-                                    Screen
+                                    Screen Aspect
                                 </button>
                             </h2>
                             <div id="screenCollapse" class="accordion-collapse collapse" aria-labelledby="screenHeading" data-bs-parent="#settingsAccordion">
                                 <div class="accordion-body">
                                     <div class="mb-3">
                                         <label for="SCREEN_WIDTH" class="form-label">Width</label>
-                                        <input type="number" class="form-control" id="SCREEN_WIDTH" name="SCREEN_WIDTH" value="{{ env.SCREEN_WIDTH }}" min="0" max="4000">
+                                        <input type="text" class="form-control" id="SCREEN_WIDTH" name="SCREEN_WIDTH" value="{{ env.SCREEN_WIDTH }}" min="0" max="4000">
                                     </div>
                                     <div class="mb-3">
                                         <label for="SCREEN_HEIGHT" class="form-label">Height</label>

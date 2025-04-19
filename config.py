@@ -72,10 +72,10 @@ class Config:
         if not self.name:
             logger.warning("NAME environment variable is not set.")
         if not os.path.isdir(self.slideshow_folder):
-            print(
-                f"Slideshow folder does not exist: {self.slideshow_folder}")
+            print(f"Slideshow folder does not exist: {self.slideshow_folder}")
             logger.warning(f"Slideshow folder does not exist: {self.slideshow_folder}")
         print("bar")
+
     def save(self, updates):
         """Update the .env file with new values."""
         logger.info("Updating .env file with new settings.")

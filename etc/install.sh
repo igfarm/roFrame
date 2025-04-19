@@ -1,7 +1,23 @@
 #!/bin/bash
 
 # make sure we are on a raspberry pi
-if ...
+set -euo pipefail
+
+if is_latest_rpi4_64bit; then
+    echo "✅ Verified: Raspberry Pi 4, 64-bit, Debian 12 (Bookworm)"
+else
+    echo "⚠️ This system is NOT a Raspberry Pi 4 running 64-bit Debian 12 (Bookworm)."
+    read -rp "Do you want to continue anyway? [y/N] " response
+    case "$response" in
+        [yY][eE][sS]|[yY])
+            echo "🔄 Continuing anyway..."
+            ;;
+        *)
+            echo "❌ Exiting script."
+            exit 1
+            ;;
+    esac
+fi
 
 # Update package lists and install Git
 sudo apt update
@@ -34,3 +50,20 @@ sudo systemctl enable kiosk.service
 # Fix X11 startup
 sudo sed -i "s|allowed_users=console|allowed_users=anybody|g" /etc/X11/Xwrapper.config
 
+
+is_rpi4_64bit() {
+    # --- 1. Distro check (Pi OS *or* Debian) ------------------------------
+    grep -qiE 'raspbian|raspberry pi os|debian' /etc/os-release || return 1
+
+    # --- 2. Hardware: must be a Pi 4 / CM4 -------------------------------
+    if ! grep -q 'Raspberry Pi 4' /proc/device-tree/model 2>/dev/null; then
+        local rev
+        rev=$(awk '/^Revision/ {print $3}' /proc/cpuinfo 2>/dev/null)
+        [[ $rev == d0* ]] || return 1        # Pi‑4 & CM4 revision codes
+    fi
+
+    # --- 3. 64‑bit userspace --------------------------------------------
+    [[ $(uname -m) == aarch64 ]] || return 1
+
+    return 0
+}
